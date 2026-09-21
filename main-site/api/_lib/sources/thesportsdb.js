@@ -23,7 +23,30 @@ export const id = "thesportsdb";
    list of 40 fixtures does not make 40 identical calls in one invocation. */
 const badgeMemo = new Map();
 
-function eventToFixture(event) {
+/* TheSportsDB spells sports its own way, and the eventsday endpoint wants
+   the underscored form. This maps both directions onto the internal ids
+   the rest of the app uses, so a browse fixture carries the sport it
+   actually is and not a flat "multi". */
+const SPORT_IDS = {
+  Ice_Hockey: "hockey",
+  "Ice Hockey": "hockey",
+  Rugby: "rugby",
+  "Rugby Union": "rugby",
+  "Rugby League": "rugby",
+  Cricket: "cricket",
+  Baseball: "baseball",
+  American_Football: "americanfootball",
+  "American Football": "americanfootball",
+  Handball: "handball",
+  Volleyball: "volleyball",
+};
+
+function sportIdFor(raw) {
+  if (!raw) return "multi";
+  return SPORT_IDS[raw] || SPORT_IDS[String(raw).replace(/_/g, " ")] || "multi";
+}
+
+function eventToFixture(event, requestedSport) {
   const scoreHome = toNumberOrNull(event.intHomeScore);
   const scoreAway = toNumberOrNull(event.intAwayScore);
   const hasScore = scoreHome !== null && scoreAway !== null;
@@ -36,7 +59,9 @@ function eventToFixture(event) {
 
   return makeFixture({
     id: `tsdb-${event.idEvent}`,
-    sport: "multi",
+    /* The event's own strSport is the truth; the sport we asked for is the
+       fallback when a free tier response omits it. */
+    sport: sportIdFor(event.strSport || requestedSport),
     competition: event.strLeague || null,
     homeName: event.strHomeTeam || null,
     awayName: event.strAwayTeam || null,
@@ -69,12 +94,14 @@ export async function fetchByDate(date, { sports = BROWSE_SPORTS } = {}) {
 
   const fixtures = [];
 
-  for (const batch of batches) {
-    if (batch.status !== "fulfilled") continue;
+  /* Indexed, so each batch keeps the sport it was requested for. Without
+     that the fallback in eventToFixture has nothing to fall back to. */
+  batches.forEach((batch, i) => {
+    if (batch.status !== "fulfilled") return;
     const events = batch.value?.events;
-    if (!Array.isArray(events)) continue;
-    for (const event of events) fixtures.push(eventToFixture(event));
-  }
+    if (!Array.isArray(events)) return;
+    for (const event of events) fixtures.push(eventToFixture(event, sports[i]));
+  });
 
   return fixtures;
 }
@@ -145,7 +172,7 @@ export async function searchTeams(query) {
 
     return (data?.teams || []).slice(0, 20).map((team) => ({
       kind: "team",
-      sport: "multi",
+      sport: sportIdFor(team.strSport),
       id: team.idTeam,
       name: team.strTeam,
       subtitle: [team.strSport, team.strLeague].filter(Boolean).join(", "),

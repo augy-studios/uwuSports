@@ -13,6 +13,7 @@ import { hasSupabase } from "./_lib/supabase.js";
 import * as balldontlie from "./_lib/sources/balldontlie.js";
 import * as footballdata from "./_lib/sources/footballdata.js";
 import * as highlightly from "./_lib/sources/highlightly.js";
+import * as sportsapipro from "./_lib/sources/sportsapipro.js";
 import * as espn from "./_lib/sources/espn.js";
 
 export default async function handler(req, res) {
@@ -37,6 +38,12 @@ export default async function handler(req, res) {
           ? "Secondary source, 100 requests a day. Gap sports only."
           : "HIGHLIGHTLY_API_KEY is not set, so hockey, rugby and the other gap sports are off.",
       },
+      sportsapipro: {
+        configured: sportsapipro.isConfigured(),
+        note: sportsapipro.isConfigured()
+          ? "Badminton. 100 requests a day, shared across the provider."
+          : "SPORTSAPIPRO_API_KEY is not set, so the badminton section is off.",
+      },
       espn: {
         configured: espn.isEnabled(),
         note: "Unofficial enhancement layer. Never a section's only source.",
@@ -49,7 +56,6 @@ export default async function handler(req, res) {
         : "Supabase is not configured, so caching is per instance and in memory only.",
     },
     unavailable: {
-      badminton: "No free data source exists.",
       olympics: "No free data source exists.",
     },
   };

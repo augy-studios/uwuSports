@@ -104,12 +104,14 @@ export const SPORT_LABELS = {
   multi: "Other sports",
   badminton: "Badminton",
   olympics: "Olympics",
-  // The gap sports, which reach the browse section through Highlightly.
+  // The browse sports, from TheSportsDB and Highlightly.
   hockey: "Ice hockey",
   rugby: "Rugby",
   handball: "Handball",
   volleyball: "Volleyball",
   cricket: "Cricket",
+  baseball: "Baseball",
+  americanfootball: "American football",
 };
 
 export const SPORT_ICONS = {
@@ -124,7 +126,27 @@ export const SPORT_ICONS = {
   handball: "trophy",
   volleyball: "trophy",
   cricket: "trophy",
+  baseball: "trophy",
+  americanfootball: "trophy",
 };
+
+/* The sub-tabs under Browse, in display order. "all" is not a sport; it is
+   the unfiltered view and is always first.
+
+   This is the full set either browse source can return. A sport with no
+   fixtures on the chosen day still gets a tab, showing a count of zero and
+   an empty state, because a tab that appears and disappears depending on
+   the day is harder to navigate than one that is honestly empty. */
+export const BROWSE_FILTERS = [
+  "all",
+  "hockey",
+  "rugby",
+  "cricket",
+  "baseball",
+  "americanfootball",
+  "handball",
+  "volleyball",
+];
 
 export function sportLabel(id) {
   return SPORT_LABELS[id] || id;

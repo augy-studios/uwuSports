@@ -107,6 +107,9 @@
     </header>
 
     <main class="wrap">
+        <!-- Browse only. Hidden on every other route, so the second row of
+             tabs never appears above a section it cannot filter. -->
+        <nav class="subtabs hidden" id="browseTabs" aria-label="Filter browse by sport"></nav>
         <p class="freshness" id="freshness" role="status" aria-live="polite"></p>
         <div id="view"></div>
         <div id="standings"></div>

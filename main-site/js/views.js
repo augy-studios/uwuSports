@@ -2,7 +2,7 @@
    which adapter produced them. */
 
 import { escapeHtml, localTime, localDate, localDateTime, localTimezoneName, relativeTime, hydrateIcons } from "./ui.js";
-import { sortFixtures, groupBySport, statusLabel, sportLabel, sportIcon, hasScore } from "./normalise.js";
+import { sortFixtures, groupBySport, statusLabel, sportLabel, sportIcon, hasScore, BROWSE_FILTERS } from "./normalise.js";
 import { fixtureIsFavourited } from "./favourites.js";
 
 /* ---- fixture card ---- */
@@ -107,6 +107,64 @@ function section(title, iconName, fixtures, favourites) {
       </div>
     </section>
   `;
+}
+
+/* ---- browse sub-tabs ----
+   A second row of tabs under the main nav, splitting the browse section by
+   sport. Counts come from the fixtures actually loaded, so a tab reading
+   zero is telling the truth about the chosen day and not about coverage. */
+
+export function renderBrowseTabs(container, fixtures, active) {
+  if (!container) return;
+
+  const counts = new Map();
+  for (const fixture of fixtures) {
+    counts.set(fixture.sport, (counts.get(fixture.sport) || 0) + 1);
+  }
+
+  container.innerHTML = BROWSE_FILTERS.map((id) => {
+    const count = id === "all" ? fixtures.length : counts.get(id) || 0;
+    const isActive = id === active;
+    const label = id === "all" ? "All" : sportLabel(id);
+
+    return `
+      <button class="subtab${isActive ? " active" : ""}" type="button"
+        data-browse-filter="${escapeHtml(id)}"
+        aria-pressed="${isActive}"${count === 0 && id !== "all" ? " data-empty" : ""}>
+        ${escapeHtml(label)}
+        <span class="subtab-count">${count}</span>
+      </button>`;
+  }).join("");
+
+  hydrateIcons(container);
+}
+
+/* The browse list for one filter. "all" groups by sport so the section
+   still reads as a browse; a single sport is a flat list, since grouping
+   one group is just an extra heading. */
+export function renderBrowse(container, fixtures, favourites, active) {
+  if (active === "all") {
+    renderDashboard(container, fixtures, favourites);
+    return;
+  }
+
+  const visible = sortFixtures(fixtures.filter((f) => f.sport === active));
+
+  if (!visible.length) {
+    container.innerHTML = emptyState(
+      `No ${sportLabel(active).toLowerCase()} today`,
+      "Nothing is scheduled for this sport on the chosen day. Try another date, or another sport."
+    );
+    hydrateIcons(container);
+    return;
+  }
+
+  container.innerHTML = `
+    <div class="fixture-list">
+      ${visible.map((f) => fixtureCard(f, { starred: fixtureIsFavourited(f, favourites) })).join("")}
+    </div>`;
+
+  hydrateIcons(container);
 }
 
 /* ---- detail ---- */
@@ -229,14 +287,13 @@ export function loadingState(label = "Loading fixtures") {
   `;
 }
 
-/* The two coverage gaps. Stated plainly and not hidden, and no
-   placeholder fixtures are ever shipped for either. */
+/* The remaining coverage gap. Stated plainly and not hidden, with no
+   placeholder fixtures ever shipped for it.
+
+   Badminton used to live here too. SportsAPI Pro serves it on a free plan
+   now, so it has real fixtures and this no longer applies to it. */
 export function comingSoonState(sport) {
   const copy = {
-    badminton: {
-      title: "Badminton is not available yet",
-      body: "No free badminton data source currently exists. The BWF publishes no public API, and the community projects that used to fill the gap have been blocked. uwuSports will add badminton the day a free source appears.",
-    },
     olympics: {
       title: "Olympics is not available yet",
       body: "Every Olympic data provider gates its feed behind a paid plan or a sales conversation. uwuSports only uses sources that are free forever, so this section is waiting on one.",

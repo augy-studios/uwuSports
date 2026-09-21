@@ -17,15 +17,16 @@ import * as balldontlie from "../_lib/sources/balldontlie.js";
 import * as footballdata from "../_lib/sources/footballdata.js";
 import * as thesportsdb from "../_lib/sources/thesportsdb.js";
 import * as highlightly from "../_lib/sources/highlightly.js";
+import * as sportsapipro from "../_lib/sources/sportsapipro.js";
 import * as espn from "../_lib/sources/espn.js";
 
-/* The two gaps, stated and not hidden. Neither has a free data source
-   that exists, so neither is stubbed with fake fixtures. */
+/* The remaining gap, stated and not hidden. No free Olympic source exists,
+   so this is not stubbed with fake fixtures.
+
+   Badminton used to be listed here too. SportsAPI Pro now serves it on a
+   free plan with coverage identical to paid, so it has a real collector
+   below instead. */
 const UNAVAILABLE = {
-  badminton: {
-    reason:
-      "No free badminton data source currently exists. The BWF publishes no public API, and the community projects that filled the gap have been blocked.",
-  },
   olympics: {
     reason:
       "Every Olympic data provider gates its feed behind a paid plan or a sales conversation, and uwuSports only uses sources that are free forever.",
@@ -107,6 +108,20 @@ const COLLECTORS = {
     if (espn.isEnabled()) await espn.enhance(fixtures, "football").catch(() => {});
 
     return { sport: "football", fixtures: sortFixtures(fixtures), notes: [] };
+  },
+
+  async badminton(date) {
+    if (!sportsapipro.isConfigured()) {
+      return {
+        sport: "badminton",
+        fixtures: [],
+        available: false,
+        reason: "The badminton section needs SPORTSAPIPRO_API_KEY to be set on the server.",
+      };
+    }
+
+    const fixtures = await sportsapipro.fetchByDate(date);
+    return { sport: "badminton", fixtures: sortFixtures(fixtures), notes: [] };
   },
 
   async multi(date) {

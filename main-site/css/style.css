@@ -130,6 +130,70 @@
   border-color: transparent;
 }
 
+/* ---- browse sub-tabs ----
+   A second, quieter row under the main nav. Deliberately a step down from
+   .tab: smaller, no border, so the two rows read as a hierarchy and not as
+   two competing navigations. */
+
+.subtabs {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+}
+
+.subtabs::-webkit-scrollbar {
+  display: none;
+}
+
+.subtabs.hidden {
+  display: none;
+}
+
+.subtab {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--muted-strong);
+  font-size: 0.8rem;
+  white-space: nowrap;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.subtab:hover {
+  background: var(--brand-fill);
+  color: var(--on-brand);
+}
+
+.subtab.active {
+  background: var(--brand-fill);
+  color: var(--on-brand);
+}
+
+/* A sport with nothing on today stays selectable and says zero, so the
+   row does not reshuffle as the date changes. */
+.subtab[data-empty] {
+  opacity: 0.55;
+}
+
+.subtab-count {
+  font-size: 0.72rem;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--surface-strong);
+  color: var(--muted-strong);
+}
+
+.subtab.active .subtab-count {
+  background: color-mix(in srgb, var(--on-brand) 14%, transparent);
+  color: var(--on-brand);
+}
+
 /* ---- freshness stamp ---- */
 
 .freshness {

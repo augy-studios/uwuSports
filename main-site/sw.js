@@ -13,7 +13,7 @@
       in the build has moved. Bump it on every deploy that changes anything
       the worker serves. */
 
-const SW_VERSION = "uwusports-2026-09-22-1";
+const SW_VERSION = "uwusports-2026-09-22-2";
 
 const SHELL_CACHE = `uwusports-shell-${SW_VERSION}`;
 const ICON_CACHE = `uwusports-icons-${SW_VERSION}`;

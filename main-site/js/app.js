@@ -14,11 +14,14 @@ import { detectSession, loadFavourites, toggleFavourite } from "./favourites.js"
 import {
   renderDashboard,
   renderStandings,
+  renderBrowseTabs,
+  renderBrowse,
   loadingState,
   emptyState,
   comingSoonState,
   renderFreshness,
 } from "./views.js";
+import { BROWSE_FILTERS } from "./normalise.js";
 
 /* ---- theme modal ---- */
 
@@ -116,7 +119,11 @@ const SPORT_FOR_ROUTE = {
   f1: "formula1",
   football: "football",
   browse: "multi",
+  badminton: "badminton",
 };
+
+/* Routes whose source publishes a table worth fetching. */
+const STANDINGS_ROUTES = new Set(["nba", "f1", "football"]);
 
 function currentRoute() {
   const raw = (window.location.hash || "#today").replace(/^#\/?/, "");
@@ -124,46 +131,84 @@ function currentRoute() {
   return ROUTES.includes(name) ? name : "today";
 }
 
-/* ---- refresh scheduling ----
-   Never poll faster than the slowest source's rate limit allows. The server
-   caches live fixtures for 45 seconds, so polling the client faster than
-   that only burns battery for the same bytes. 60 seconds when something is
-   live, nothing at all when nothing is. */
+/* Today is the default route, so "#today" in the address bar is noise: the
+   bare origin already means the same thing, which is why currentRoute
+   treats an empty hash as today.
 
-const LIVE_POLL_MS = 60_000;
+   replaceState rather than assigning location.hash, because assigning
+   would push a history entry and fire hashchange, reloading the view we
+   just drew and leaving a back button that goes nowhere visible. This
+   edits the current entry in place and fires nothing.
 
-let pollTimer = null;
+   Every other route keeps its hash, so those stay linkable and
+   bookmarkable. */
+function tidyAddressBar() {
+  if (currentRoute() !== "today") return;
+  if (!window.location.hash) return;
+
+  history.replaceState(null, "", window.location.pathname + window.location.search);
+}
+
+/* ---- refresh policy ----
+
+   Every fetch is on demand. Nothing polls, nothing refetches when the tab
+   regains focus, and nothing refetches on reconnect. A view is loaded once
+   when you navigate to it, and after that only the refresh button in the
+   top bar goes back to the network.
+
+   This is a deliberate trade against freshness, and the quotas are why.
+   Highlightly allows 100 requests a day and SportsAPI Pro allows 100 a day
+   shared across every sport it serves. A one minute poll left open through
+   an afternoon would exhaust either one by itself, and then the section it
+   was polling shows nothing for the rest of the day.
+
+   So the reader decides when to spend a request. The last-updated stamp
+   next to the button says how old what they are looking at is, which is
+   what makes that choice an informed one instead of a guess.
+
+   Revisiting a route reuses the payload already in memory, so moving
+   between tabs costs nothing. */
+
 let inFlight = null;
 let lastResult = null;
 
-function schedulePoll(hasLive) {
-  if (pollTimer) {
-    clearTimeout(pollTimer);
-    pollTimer = null;
-  }
+/* Payloads already fetched this session, keyed by route. A route in here
+   renders from memory; only the refresh button clears it. */
+const loaded = new Map();
 
-  if (!hasLive || isOffline()) return;
-
-  pollTimer = setTimeout(() => {
-    pollTimer = null;
-    void load({ quiet: true });
-  }, LIVE_POLL_MS);
-}
+/* Which browse sub-tab is selected. Kept in memory for the session and not
+   in the hash: it is a filter over data already loaded, so changing it
+   should not push a history entry somebody then has to press back through. */
+let browseFilter = "all";
 
 /* ---- loading ---- */
 
-async function load({ quiet = false } = {}) {
+async function load({ force = false } = {}) {
   const route = currentRoute();
   const main = document.getElementById("view");
   const freshness = document.getElementById("freshness");
 
   if (!main) return;
 
-  if (route === "badminton" || route === "olympics") {
+  /* The sub-tabs belong to browse alone. Hidden first, so an early return
+     below cannot leave them stranded above another section. */
+  const browseTabs = document.getElementById("browseTabs");
+  if (browseTabs) browseTabs.classList.toggle("hidden", route !== "browse");
+
+  /* Olympics has no free source at all, so it never reaches the network.
+     Badminton does now, through SportsAPI Pro. */
+  if (route === "olympics") {
     main.innerHTML = comingSoonState(route);
     hydrateIcons(main);
     renderFreshness(freshness, { fetchedAt: null, stale: false });
-    schedulePoll(false);
+    return;
+  }
+
+  /* Already fetched this session, and this is not a refresh: render from
+     memory and spend no request. Moving between tabs is free. */
+  if (!force && loaded.has(route)) {
+    lastResult = loaded.get(route);
+    await paint(route, lastResult, main, freshness, browseTabs);
     return;
   }
 
@@ -171,7 +216,7 @@ async function load({ quiet = false } = {}) {
   const controller = new AbortController();
   inFlight = controller;
 
-  if (!quiet) main.innerHTML = loadingState(route === "today" ? "Loading today's fixtures" : "Loading fixtures");
+  main.innerHTML = loadingState(route === "today" ? "Loading today's fixtures" : "Loading fixtures");
 
   try {
     const favourites = await loadFavourites();
@@ -189,38 +234,12 @@ async function load({ quiet = false } = {}) {
 
     lastResult = result;
 
-    if (!result.ok) {
-      main.innerHTML = emptyState(
-        "Nothing to show yet",
-        result.error || "uwuSports could not reach any source for this view.",
-        "cloudOff"
-      );
-      hydrateIcons(main);
-      renderFreshness(freshness, { fetchedAt: null, stale: false });
-      schedulePoll(false);
-      return;
-    }
+    /* Only a usable payload is remembered. Caching a failure would mean a
+       transient outage pinned the view until the reader pressed refresh,
+       which is the opposite of what the button is for. */
+    if (result.ok) loaded.set(route, result);
 
-    const fixtures = Array.isArray(result.data?.fixtures) ? result.data.fixtures : [];
-    const visible = route === "favourites"
-      ? fixtures.filter((f) => favourites.some((fav) => fav.name === f.homeName || fav.name === f.awayName || fav.name === f.competition))
-      : fixtures;
-
-    if (route === "favourites" && !favourites.length) {
-      main.innerHTML = emptyState(
-        "No favourites yet",
-        "Star a team, a driver or a competition anywhere in uwuSports and it will be pinned here and at the top of today.",
-        "star"
-      );
-      hydrateIcons(main);
-    } else {
-      renderDashboard(main, visible, favourites);
-    }
-
-    renderFreshness(freshness, { fetchedAt: result.fetchedAt, stale: result.stale });
-    schedulePoll(visible.some((f) => f.status === "live"));
-
-    if (route !== "today" && route !== "favourites") void loadStandings(SPORT_FOR_ROUTE[route]);
+    await paint(route, result, main, freshness, browseTabs);
   } catch (cause) {
     if (cause?.name === "AbortError") return;
     main.innerHTML = emptyState("Something went wrong", cause.message || "Try again in a moment.", "warning");
@@ -228,6 +247,65 @@ async function load({ quiet = false } = {}) {
   } finally {
     if (inFlight === controller) inFlight = null;
   }
+}
+
+/* Draws a result, whether it came from the network a moment ago or from
+   memory. Shared so a cached render and a fresh one cannot drift apart. */
+async function paint(route, result, main, freshness, browseTabs) {
+  if (!result.ok) {
+    main.innerHTML = emptyState(
+      "Nothing to show yet",
+      result.error || "uwuSports could not reach any source for this view.",
+      "cloudOff"
+    );
+    hydrateIcons(main);
+    renderFreshness(freshness, { fetchedAt: null, stale: false });
+    return;
+  }
+
+  const favourites = await loadFavourites();
+
+  const fixtures = Array.isArray(result.data?.fixtures) ? result.data.fixtures : [];
+  const visible = route === "favourites"
+    ? fixtures.filter((f) => favourites.some((fav) => fav.name === f.homeName || fav.name === f.awayName || fav.name === f.competition))
+    : fixtures;
+
+  /* A section whose key is unset answers with a reason instead of fixtures.
+     Saying so beats an empty list that looks like a quiet day. */
+  if (result.data?.available === false) {
+    main.innerHTML = emptyState("Not available yet", result.data.reason || "This section is not configured.", "info");
+    hydrateIcons(main);
+    renderFreshness(freshness, { fetchedAt: result.fetchedAt, stale: result.stale });
+    return;
+  }
+
+  if (route === "favourites" && !favourites.length) {
+    main.innerHTML = emptyState(
+      "No favourites yet",
+      "Star a team, a driver or a competition anywhere in uwuSports and it will be pinned here and at the top of today.",
+      "star"
+    );
+    hydrateIcons(main);
+  } else if (route === "browse") {
+    /* Tabs are drawn from the full set, so every count reflects the day
+       and not the current filter. */
+    renderBrowseTabs(browseTabs, visible, browseFilter);
+    renderBrowse(main, visible, favourites, browseFilter);
+  } else {
+    renderDashboard(main, visible, favourites);
+  }
+
+  renderFreshness(freshness, { fetchedAt: result.fetchedAt, stale: result.stale });
+
+  /* Cleared first, so a table from the route we just left does not sit
+     under the fixtures of the one we arrived at. */
+  const standings = document.getElementById("standings");
+  if (standings) standings.innerHTML = "";
+
+  /* Only the sports whose source publishes a table. Badminton is a knockout
+     draw with no league table, and browse spans too many competitions for
+     one, so asking would spend a request on a certain 404. */
+  if (STANDINGS_ROUTES.has(route)) void loadStandings(SPORT_FOR_ROUTE[route]);
 }
 
 async function loadStandings(sport) {
@@ -244,28 +322,70 @@ async function loadStandings(sport) {
 function wireNav() {
   window.addEventListener("hashchange", () => {
     syncNavState();
+    tidyAddressBar();
     void load();
   });
 
+  /* Clicking Today or the logo while the address bar is already bare sets
+     the hash to the value it effectively has, so no hashchange fires and
+     nothing would happen. Handled here so those two always return to the
+     dashboard, and so the bare URL is preserved instead of briefly
+     gaining a "#today" that tidyAddressBar then removes. */
+  document.querySelectorAll('a[href="#today"]').forEach((link) => {
+    link.addEventListener("click", (e) => {
+      if (window.location.hash) return;
+      e.preventDefault();
+      if (currentRoute() !== "today") return;
+      syncNavState();
+      void load();
+    });
+  });
+
+  /* The only thing in the app that goes back to the network on purpose.
+     force skips the session cache; everything else renders what is already
+     in memory. */
   document.getElementById("refreshBtn")?.addEventListener("click", () => {
-    void load();
-  });
-
-  /* Coming back to a tab that has been open a while is the moment to
-     recheck, the same reasoning as the time based mode's visibility hook. */
-  document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState !== "visible") return;
     if (isOffline()) return;
-    void load({ quiet: true });
+    void load({ force: true });
   });
 
-  document.addEventListener("uwu:connectionchange", () => {
-    if (!isOffline()) void load({ quiet: true });
-    else schedulePoll(false);
-  });
+  /* No visibilitychange refetch and no reconnect refetch, on purpose. Both
+     spend a request the reader did not ask for, and at 100 a day that is
+     the difference between a working section and an exhausted quota. The
+     last-updated stamp tells them how old this is; the button is theirs. */
 
+  /* Starring something changes which fixtures are pinned, not which
+     fixtures exist, so this repaints from memory and never refetches. */
   document.addEventListener("uwu:favouriteschange", () => {
-    void load({ quiet: true });
+    const route = currentRoute();
+    if (!lastResult?.ok) return;
+    void paint(
+      route,
+      lastResult,
+      document.getElementById("view"),
+      document.getElementById("freshness"),
+      document.getElementById("browseTabs")
+    );
+  });
+
+  /* Switching sub-tab is a filter over fixtures already in hand, so it
+     redraws from lastResult and never refetches. Spending a request to
+     re-filter data we already have would be the wrong trade at these rate
+     limits, and it would flash a loading state for nothing. */
+  document.getElementById("browseTabs")?.addEventListener("click", async (e) => {
+    const btn = e.target.closest("[data-browse-filter]");
+    if (!btn) return;
+
+    const next = btn.dataset.browseFilter;
+    if (!BROWSE_FILTERS.includes(next) || next === browseFilter) return;
+
+    browseFilter = next;
+
+    const fixtures = Array.isArray(lastResult?.data?.fixtures) ? lastResult.data.fixtures : [];
+    const favourites = await loadFavourites();
+
+    renderBrowseTabs(document.getElementById("browseTabs"), fixtures, browseFilter);
+    renderBrowse(document.getElementById("view"), fixtures, favourites, browseFilter);
   });
 
   document.getElementById("view")?.addEventListener("click", (e) => {
@@ -358,6 +478,9 @@ async function boot() {
   wireNav();
   wireSearch();
   syncNavState();
+  /* After syncNavState, so the Today tab is marked active from the real
+     route before the hash is dropped from the address bar. */
+  tidyAddressBar();
 
   initUpdateBar();
 
