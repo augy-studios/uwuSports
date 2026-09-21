@@ -136,6 +136,16 @@ export function renderBrowseTabs(container, fixtures, active) {
       </button>`;
   }).join("");
 
+  /* The row scrolls, so the selected tab can sit off screen after a
+     redraw, for instance picking a sport at the far right and then
+     refreshing. Bring it back into view, along the row only: "nearest"
+     on the block axis stops this yanking the whole page down to the
+     tab bar. */
+  const current = container.querySelector(".subtab.active");
+  if (current) {
+    current.scrollIntoView({ inline: "nearest", block: "nearest" });
+  }
+
   hydrateIcons(container);
 }
 

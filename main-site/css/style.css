@@ -98,6 +98,11 @@
   gap: 6px;
   overflow-x: auto;
   scrollbar-width: none;
+  /* This one sits in a block parent, so it has no min-width trap the way
+     .subtabs does. Same scrolling feel regardless. */
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x proximity;
+  overscroll-behavior-x: contain;
 }
 
 .tabs::-webkit-scrollbar {
@@ -114,6 +119,7 @@
   font-size: 0.85rem;
   text-decoration: none;
   white-space: nowrap;
+  scroll-snap-align: start;
   transition: background 0.15s ease, color 0.15s ease;
 }
 
@@ -141,6 +147,18 @@
   overflow-x: auto;
   scrollbar-width: none;
   padding-bottom: 2px;
+  /* .wrap is a column flex container, so this is a flex item and picks up
+     min-width: auto, which refuses to shrink below the combined width of
+     the tabs. The row then stretches past the column and overflow-x has
+     nothing to overflow, so it never scrolls. These two put the width back
+     under the parent's control. */
+  min-width: 0;
+  width: 100%;
+  /* Momentum scrolling on iOS, and snap each tab to the left edge so a
+     flick does not leave one half cut off. */
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x proximity;
+  overscroll-behavior-x: contain;
 }
 
 .subtabs::-webkit-scrollbar {
@@ -162,7 +180,15 @@
   color: var(--muted-strong);
   font-size: 0.8rem;
   white-space: nowrap;
+  scroll-snap-align: start;
   transition: background 0.15s ease, color 0.15s ease;
+}
+
+/* Keyboard focus has to stay visible on a scrolling row, and the browser
+   scrolls a focused tab into view on its own. */
+.subtab:focus-visible {
+  outline: 2px solid var(--brand-ink);
+  outline-offset: 2px;
 }
 
 .subtab:hover {
