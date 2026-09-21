@@ -9,13 +9,14 @@ import {
 } from "./theme.js";
 import { hydrateIcons, openModal, closeModal, escapeHtml, todayISODate } from "./ui.js";
 import { initUpdateBar, isOffline } from "./update.js";
-import { getToday, getSport, getStandings, search as searchApi } from "./api.js";
+import { getToday, getSport, getFixture, getStandings, search as searchApi } from "./api.js";
 import { detectSession, loadFavourites, toggleFavourite } from "./favourites.js";
 import {
   renderDashboard,
   renderStandings,
   renderBrowseTabs,
   renderBrowse,
+  renderFixtureDetail,
   loadingState,
   emptyState,
   comingSoonState,
@@ -108,10 +109,6 @@ function wireModals() {
   });
 }
 
-/* ---- routing ----
-   Hash routing, because the app has to work from the cached shell with no
-   server round trip when offline. */
-
 const ROUTES = ["today", "nba", "f1", "football", "browse", "badminton", "olympics", "favourites"];
 
 const SPORT_FOR_ROUTE = {
@@ -125,28 +122,53 @@ const SPORT_FOR_ROUTE = {
 /* Routes whose source publishes a table worth fetching. */
 const STANDINGS_ROUTES = new Set(["nba", "f1", "football"]);
 
+/* ---- routing ----
+
+   The address bar never shows a route. Navigating uses pushState with the
+   route carried in history.state instead of the URL, so the bar stays at
+   the bare origin everywhere, not only on today.
+
+   What this costs, stated plainly: a route is no longer linkable or
+   bookmarkable, and a reload always lands on today. That is the trade for
+   a clean URL, and it is only acceptable here because every route is one
+   tap from every other one.
+
+   What it keeps: back and forward still work, because each navigation is
+   a real history entry. That is why this is pushState and not a plain
+   variable. */
+
+let activeRoute = "today";
+
+/* The fixture whose detail view is open, as { sport, id }, or null for the
+   list. Kept alongside the route in history.state so back closes the
+   detail view instead of leaving the page. */
+let detailFixture = null;
+
 function currentRoute() {
-  const raw = (window.location.hash || "#today").replace(/^#\/?/, "");
-  const [name] = raw.split("?");
-  return ROUTES.includes(name) ? name : "today";
+  return ROUTES.includes(activeRoute) ? activeRoute : "today";
 }
 
-/* Today is the default route, so "#today" in the address bar is noise: the
-   bare origin already means the same thing, which is why currentRoute
-   treats an empty hash as today.
+/* An old-style "#nba" link, from a bookmark or another page, still works:
+   it is read once at boot and then removed from the bar. */
+function routeFromHash() {
+  const raw = (window.location.hash || "").replace(/^#\/?/, "");
+  const [name] = raw.split("?");
+  return ROUTES.includes(name) ? name : null;
+}
 
-   replaceState rather than assigning location.hash, because assigning
-   would push a history entry and fire hashchange, reloading the view we
-   just drew and leaving a back button that goes nowhere visible. This
-   edits the current entry in place and fires nothing.
+function bareUrl() {
+  return window.location.pathname + window.location.search;
+}
 
-   Every other route keeps its hash, so those stay linkable and
-   bookmarkable. */
-function tidyAddressBar() {
-  if (currentRoute() !== "today") return;
-  if (!window.location.hash) return;
+/* Navigate. Pushes a history entry so back returns to the previous route,
+   while the visible URL stays bare. */
+function goToRoute(route, { replace = false } = {}) {
+  if (!ROUTES.includes(route)) route = "today";
+  activeRoute = route;
 
-  history.replaceState(null, "", window.location.pathname + window.location.search);
+  const state = { route };
+  if (replace) history.replaceState(state, "", bareUrl());
+  else history.pushState(state, "", bareUrl());
 }
 
 /* ---- refresh policy ----
@@ -181,6 +203,82 @@ const loaded = new Map();
    should not push a history entry somebody then has to press back through. */
 let browseFilter = "all";
 
+/* ---- detail view ---- */
+
+/* Opening a fixture is a history entry, so back closes it and returns to
+   the list exactly where it was. */
+function openDetail(sport, id) {
+  if (!sport || !id) return;
+
+  detailFixture = { sport, id };
+  history.pushState({ route: currentRoute(), fixture: detailFixture }, "", bareUrl());
+  void load();
+}
+
+async function loadDetail({ sport, id }) {
+  const main = document.getElementById("view");
+  const freshness = document.getElementById("freshness");
+  const standings = document.getElementById("standings");
+  const browseTabs = document.getElementById("browseTabs");
+
+  if (!main) return;
+
+  /* The detail view is its own thing: no sub-tabs, no league table. */
+  if (browseTabs) browseTabs.classList.add("hidden");
+  if (standings) standings.innerHTML = "";
+
+  /* Everything the card already showed is in memory, so draw that first
+     and let the extras arrive. A spinner here would hide information the
+     reader can already see. */
+  const known = findLoadedFixture(sport, id);
+  if (known) renderFixtureDetail(main, known);
+  else main.innerHTML = loadingState("Loading fixture");
+
+  const cacheKey = `detail:${sport}:${id}`;
+
+  if (loaded.has(cacheKey)) {
+    const cached = loaded.get(cacheKey);
+    renderFixtureDetail(main, cached.data);
+    renderFreshness(freshness, { fetchedAt: cached.fetchedAt, stale: cached.stale });
+    return;
+  }
+
+  const result = await getFixture(sport, id);
+
+  if (result.ok && result.data) {
+    loaded.set(cacheKey, result);
+    renderFixtureDetail(main, result.data);
+    renderFreshness(freshness, { fetchedAt: result.fetchedAt, stale: result.stale });
+    return;
+  }
+
+  /* No extras available. The card's own data is still worth showing, and
+     several sources have no per-fixture endpoint at all on the free tier. */
+  if (known) {
+    renderFreshness(freshness, { fetchedAt: lastResult?.fetchedAt, stale: lastResult?.stale });
+    return;
+  }
+
+  main.innerHTML = emptyState(
+    "That fixture is not available",
+    result.error || "This source does not publish details for a single fixture on its free tier.",
+    "info"
+  );
+  hydrateIcons(main);
+}
+
+/* The fixture as the list already knows it, so the detail view can paint
+   before any request resolves. */
+function findLoadedFixture(sport, id) {
+  for (const result of loaded.values()) {
+    const fixtures = result?.data?.fixtures;
+    if (!Array.isArray(fixtures)) continue;
+    const hit = fixtures.find((f) => String(f.id) === String(id));
+    if (hit) return hit;
+  }
+  return null;
+}
+
 /* ---- loading ---- */
 
 async function load({ force = false } = {}) {
@@ -189,6 +287,12 @@ async function load({ force = false } = {}) {
   const freshness = document.getElementById("freshness");
 
   if (!main) return;
+
+  /* A detail view is open on top of the current route. */
+  if (detailFixture) {
+    await loadDetail(detailFixture);
+    return;
+  }
 
   /* The sub-tabs belong to browse alone. Hidden first, so an early return
      below cannot leave them stranded above another section. */
@@ -320,25 +424,45 @@ async function loadStandings(sport) {
 /* ---- navigation, search, favourites ---- */
 
 function wireNav() {
-  window.addEventListener("hashchange", () => {
+  /* Back and forward. The route lives in history.state, so a popped entry
+     carries its own route; a null state is the entry the page opened on,
+     which is today. */
+  window.addEventListener("popstate", (e) => {
+    activeRoute = ROUTES.includes(e.state?.route) ? e.state.route : "today";
+    detailFixture = e.state?.fixture || null;
     syncNavState();
-    tidyAddressBar();
     void load();
   });
 
-  /* Clicking Today or the logo while the address bar is already bare sets
-     the hash to the value it effectively has, so no hashchange fires and
-     nothing would happen. Handled here so those two always return to the
-     dashboard, and so the bare URL is preserved instead of briefly
-     gaining a "#today" that tidyAddressBar then removes. */
-  document.querySelectorAll('a[href="#today"]').forEach((link) => {
+  /* Every in-app route link. The href stays a real "#route" so the markup
+     degrades without JavaScript and middle click still does something
+     sensible, but the click is intercepted so the hash never reaches the
+     address bar. */
+  document.querySelectorAll("a[data-route]").forEach((link) => {
     link.addEventListener("click", (e) => {
-      if (window.location.hash) return;
+      /* Leave modified clicks to the browser: a new tab has no in-memory
+         state and needs the real URL. */
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+
       e.preventDefault();
-      if (currentRoute() !== "today") return;
+      const route = link.dataset.route;
+      if (route === currentRoute() && !detailFixture) return;
+
+      detailFixture = null;
+      goToRoute(route);
       syncNavState();
       void load();
     });
+  });
+
+  /* The logo goes home. It carries no data-route, so it is handled here. */
+  document.querySelector(".brand")?.addEventListener("click", (e) => {
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+    e.preventDefault();
+    detailFixture = null;
+    goToRoute("today");
+    syncNavState();
+    void load();
   });
 
   /* The only thing in the app that goes back to the network on purpose.
@@ -389,8 +513,11 @@ function wireNav() {
   });
 
   document.getElementById("view")?.addEventListener("click", (e) => {
+    /* Star first: it sits inside the card, so checking it before the open
+       control stops a star press also opening the detail view. */
     const star = e.target.closest("[data-fav-toggle]");
     if (star) {
+      e.preventDefault();
       e.stopPropagation();
       void toggleFavourite({
         kind: star.dataset.favKind,
@@ -398,7 +525,21 @@ function wireNav() {
         id: star.dataset.favId,
         name: star.dataset.favName,
       });
+      return;
     }
+
+    if (e.target.closest("[data-detail-back]")) {
+      history.back();
+      return;
+    }
+
+    const open = e.target.closest("[data-fixture-open]");
+    if (!open) return;
+
+    const card = open.closest("[data-fixture-id]");
+    if (!card) return;
+
+    openDetail(card.dataset.sport, card.dataset.fixtureId);
   });
 }
 
@@ -475,12 +616,14 @@ async function boot() {
   updateThemeButtonIcon();
   buildThemeModal();
   wireModals();
+  /* Honour an incoming "#nba" once, from an old bookmark or an external
+     link, then replace that entry so the hash leaves the address bar
+     without adding a history step the reader has to press back through. */
+  goToRoute(routeFromHash() || "today", { replace: true });
+
   wireNav();
   wireSearch();
   syncNavState();
-  /* After syncNavState, so the Today tab is marked active from the real
-     route before the hash is dropped from the address bar. */
-  tidyAddressBar();
 
   initUpdateBar();
 

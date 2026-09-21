@@ -10,11 +10,22 @@ import { fixtureIsFavourited } from "./favourites.js";
 export function fixtureCard(fixture, { starred = false } = {}) {
   const live = fixture.status === "live";
   const score = hasScore(fixture);
+  const title = `${fixture.homeName || "To be confirmed"} against ${fixture.awayName || "To be confirmed"}`;
 
+  /* The card is an <article> holding two real controls, not one big
+     role="button". A button inside a button is invalid markup and leaves a
+     screen reader with no way to reach the star separately.
+
+     So: the competition name is the link into the detail view, stretched
+     over the whole card with ::after in CSS, and the star sits above it on
+     z-index so it stays clickable. */
   return `
-    <article class="fixture glass" data-fixture-id="${escapeHtml(fixture.id)}" data-sport="${escapeHtml(fixture.sport)}" tabindex="0" role="button" aria-label="${escapeHtml(`${fixture.homeName} against ${fixture.awayName}`)}">
+    <article class="fixture glass" data-fixture-id="${escapeHtml(fixture.id)}" data-sport="${escapeHtml(fixture.sport)}">
       <header class="fixture-head">
-        <span class="fixture-comp">${escapeHtml(fixture.competition || sportLabel(fixture.sport))}</span>
+        <button class="fixture-open" type="button" data-fixture-open
+          aria-label="${escapeHtml(`${title}, see details`)}">
+          <span class="fixture-comp">${escapeHtml(fixture.competition || sportLabel(fixture.sport))}</span>
+        </button>
         ${statusBadge(fixture)}
       </header>
 
@@ -34,11 +45,37 @@ export function fixtureCard(fixture, { starred = false } = {}) {
       <footer class="fixture-foot">
         <span class="fixture-time">${escapeHtml(fixture.status === "scheduled" ? `${localDate(fixture.startTime)}, ${localTime(fixture.startTime)}` : localDate(fixture.startTime))}</span>
         ${fixture.venue ? `<span class="fixture-venue">${escapeHtml(fixture.venue)}</span>` : ""}
-        ${starred ? `<span class="fixture-star" data-icon="starFilled" aria-label="Favourite"></span>` : ""}
+        ${starButton(fixture, starred)}
       </footer>
       ${live && fixture.delayed ? `<p class="fixture-note">Scores on this source are delayed, not live.</p>` : ""}
     </article>
   `;
+}
+
+/* Always rendered, so there is somewhere to click to create a favourite.
+   It starts hollow and fills once starred; before this it only appeared
+   when something was already a favourite, which left no way to make one.
+
+   A fixture is two teams, so the star favourites the home side. Starring
+   a specific team or a driver is what search is for. */
+function starButton(fixture, starred) {
+  const name = fixture.homeName;
+  if (!name) return "";
+
+  const label = starred ? `Remove ${name} from favourites` : `Add ${name} to favourites`;
+
+  return `
+    <button class="fixture-star${starred ? " is-on" : ""}" type="button"
+      data-fav-toggle
+      data-fav-kind="team"
+      data-fav-sport="${escapeHtml(fixture.sport)}"
+      data-fav-id="${escapeHtml(name)}"
+      data-fav-name="${escapeHtml(name)}"
+      aria-pressed="${starred}"
+      title="${escapeHtml(label)}"
+      aria-label="${escapeHtml(label)}">
+      <span data-icon="${starred ? "starFilled" : "star"}" aria-hidden="true"></span>
+    </button>`;
 }
 
 function badge(src, name) {
@@ -183,6 +220,10 @@ export function renderFixtureDetail(container, fixture) {
   const extras = fixture.extra ? renderExtras(fixture) : "";
 
   container.innerHTML = `
+    <button class="detail-back" type="button" data-detail-back>
+      <span data-icon="chevronLeft" aria-hidden="true"></span>
+      Back
+    </button>
     <article class="detail glass">
       <p class="detail-comp">${escapeHtml(fixture.competition || sportLabel(fixture.sport))}</p>
       <h2 class="detail-title">${escapeHtml(fixture.homeName)} against ${escapeHtml(fixture.awayName)}</h2>

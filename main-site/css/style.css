@@ -281,6 +281,9 @@
 /* ---- fixture card ---- */
 
 .fixture {
+  /* Positioning context for .fixture-open::after, which stretches the open
+     control across the whole card. */
+  position: relative;
   padding: 14px;
   display: flex;
   flex-direction: column;
@@ -289,14 +292,12 @@
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
+/* The card is no longer focusable itself; its controls are. focus-within
+   lifts the card when either one has keyboard focus, and each control
+   draws its own outline. */
 .fixture:hover,
-.fixture:focus-visible {
+.fixture:focus-within {
   transform: translateY(-1px);
-}
-
-.fixture:focus-visible {
-  outline: 2px solid var(--brand-ink);
-  outline-offset: 2px;
 }
 
 .fixture-head {
@@ -435,12 +436,97 @@
   white-space: nowrap;
 }
 
+/* The open control is the competition name, stretched over the whole card
+   with ::after so anywhere on the card opens the detail view. The star
+   then sits above it on z-index, so pressing the star does not also open
+   the fixture. */
+.fixture-open {
+  text-align: left;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.fixture-open::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+
+.fixture-open:focus-visible {
+  outline: none;
+}
+
+.fixture-open:focus-visible::after {
+  outline: 2px solid var(--brand-ink);
+  outline-offset: 2px;
+}
+
 .fixture-star {
+  position: relative;
+  z-index: 1;
   margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  flex: none;
+  color: var(--muted-strong);
+  transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease;
+}
+
+.fixture-star:hover {
+  background: var(--surface-strong);
+  color: var(--brand-ink);
+  transform: scale(1.08);
+}
+
+.fixture-star:focus-visible {
+  outline: 2px solid var(--brand-ink);
+  outline-offset: 1px;
+}
+
+/* Starred reads as filled and in the brand foreground, so the state is
+   carried by shape and colour together and not by colour alone. */
+.fixture-star.is-on {
   color: var(--brand-ink);
 }
 
 .fixture-star svg {
+  width: 17px;
+  height: 17px;
+  display: block;
+}
+
+/* ---- detail back link ---- */
+
+.detail-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px 6px 8px;
+  border-radius: 999px;
+  background: var(--surface-strong);
+  border: 1px solid var(--surface-border);
+  color: var(--ink);
+  font-size: 0.82rem;
+  align-self: flex-start;
+  transition: background 0.15s ease;
+}
+
+.detail-back:hover {
+  background: var(--brand-fill);
+  color: var(--on-brand);
+}
+
+.detail-back:focus-visible {
+  outline: 2px solid var(--brand-ink);
+  outline-offset: 2px;
+}
+
+.detail-back svg {
   width: 16px;
   height: 16px;
   display: block;
