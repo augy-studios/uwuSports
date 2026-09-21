@@ -55,10 +55,20 @@
   color: var(--brand-ink);
 }
 
-.brand-mark svg {
-  width: 26px;
-  height: 26px;
+/* The site logo is artwork with its own pale background, not a glyph that
+   inherits currentColor, so it is an img and not an inline SVG.
+   The radius stops it reading as a hard square, and the hairline border
+   gives the pale tile an edge in light mode, where it would otherwise
+   blend into the topbar. In dark mode the same border reads as a subtle
+   rim around a bright tile. */
+.brand-mark {
+  width: 28px;
+  height: 28px;
   display: block;
+  flex: none;
+  border-radius: 9px;
+  border: 1px solid var(--surface-border);
+  object-fit: cover;
 }
 
 .brand-name {
