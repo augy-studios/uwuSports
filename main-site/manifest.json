@@ -1,16 +1,24 @@
 {
     "name": "uwuSports by UwU Apps",
     "short_name": "uwuSports",
-    "description": "View live sports scores at your fingertips!",
+    "description": "Live sports scores, schedules and standings across Formula 1, the NBA, football and more.",
     "icons": [{
-            "src": "USC-192.png",
+            "src": "/USC-192.png",
             "type": "image/png",
-            "sizes": "192x192"
+            "sizes": "192x192",
+            "purpose": "any"
         },
         {
-            "src": "USC-512.png",
+            "src": "/USC-512.png",
             "type": "image/png",
-            "sizes": "512x512"
+            "sizes": "512x512",
+            "purpose": "any"
+        },
+        {
+            "src": "/USC-512.png",
+            "type": "image/png",
+            "sizes": "512x512",
+            "purpose": "maskable"
         }
     ],
     "screenshots": [{
@@ -26,19 +34,38 @@
             "form_factor": "wide"
         }
     ],
+    "shortcuts": [{
+            "name": "Today",
+            "short_name": "Today",
+            "url": "/#today",
+            "description": "Today's fixtures across every sport"
+        },
+        {
+            "name": "Favourites",
+            "short_name": "Favourites",
+            "url": "/#favourites",
+            "description": "Your starred teams, drivers and competitions"
+        },
+        {
+            "name": "Formula 1",
+            "short_name": "F1",
+            "url": "/#f1",
+            "description": "Race schedule, results and standings"
+        }
+    ],
     "start_url": "/",
-    "theme_color": "#cfc",
-    "background_color": "#cfc",
+    "theme_color": "#ccffcc",
+    "background_color": "#ccffcc",
     "display": "standalone",
     "display_override": ["fullscreen", "minimal-ui", "window-controls-overlay"],
     "orientation": "any",
-    "id": "uwuSports",
+    "id": "org.uwuapps.sports",
     "dir": "ltr",
     "scope": "/",
     "lang": "en",
     "categories": [
-        "entertainment",
-        "lifestyle",
-        "utilities"
+        "sports",
+        "news",
+        "entertainment"
     ]
 }

@@ -1,0 +1,824 @@
+/* uwuSports app styles. Every colour here is a token from theme.css.
+   No hex values, no gradients, no orbs, no blobs. The one fixed-meaning
+   accent is the footer heart, which reads as a heart in all 14
+   combinations regardless of the brand swatch. */
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---- layout ---- */
+
+.wrap {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* ---- top bar ---- */
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: color-mix(in srgb, var(--brand) 10%, var(--bg));
+  border-bottom: 1px solid var(--surface-border);
+  padding-top: env(safe-area-inset-top);
+}
+
+.topbar-inner {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  color: var(--brand-ink);
+}
+
+.brand-mark svg {
+  width: 26px;
+  height: 26px;
+  display: block;
+}
+
+.brand-name {
+  font-size: 1.25rem;
+}
+
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* The coffee button sits next to the theme switcher and is an anchor, so
+   it needs the icon-btn flex centring restated for a link. */
+.coffee-btn {
+  text-decoration: none;
+  color: var(--ink);
+}
+
+/* ---- tabs ---- */
+
+.tabs {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0 14px 10px;
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.tab {
+  flex: none;
+  padding: 7px 14px;
+  border-radius: 999px;
+  background: var(--surface-strong);
+  border: 1px solid var(--surface-border);
+  color: var(--muted-strong);
+  font-size: 0.85rem;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.tab:hover {
+  background: var(--brand-fill);
+  color: var(--on-brand);
+}
+
+/* Active tabs tracked the brand swatch before the mode axis existed, so
+   they still do, in both modes. */
+.tab.active {
+  background: var(--brand-fill);
+  color: var(--on-brand);
+  border-color: transparent;
+}
+
+/* ---- freshness stamp ---- */
+
+.freshness {
+  font-size: 0.8rem;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 1.2em;
+}
+
+.freshness svg {
+  width: 14px;
+  height: 14px;
+}
+
+.freshness.is-stale {
+  color: var(--warn);
+}
+
+/* ---- sport sections ---- */
+
+.sport-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.sport-heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.05rem;
+  color: var(--brand-ink);
+}
+
+.sport-icon svg {
+  width: 20px;
+  height: 20px;
+  display: block;
+}
+
+.sport-count {
+  margin-left: auto;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--brand-fill-strong);
+  color: var(--on-brand);
+  font-size: 0.78rem;
+}
+
+.fixture-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* ---- fixture card ---- */
+
+.fixture {
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.fixture:hover,
+.fixture:focus-visible {
+  transform: translateY(-1px);
+}
+
+.fixture:focus-visible {
+  outline: 2px solid var(--brand-ink);
+  outline-offset: 2px;
+}
+
+.fixture-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.fixture-comp {
+  font-size: 0.8rem;
+  color: var(--muted);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fixture-status {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+}
+
+/* Each status reads at 4.5:1 against a 14% tint of itself, which is the
+   standard badge treatment from the theme spec. */
+.fixture-status.is-live {
+  background: color-mix(in srgb, var(--ok) 14%, transparent);
+  color: var(--ok);
+}
+
+.fixture-status.is-done {
+  background: color-mix(in srgb, var(--busy) 14%, transparent);
+  color: var(--busy);
+}
+
+.fixture-status.is-soon {
+  background: var(--surface-strong);
+  color: var(--muted-strong);
+}
+
+.fixture-status.is-warn {
+  background: color-mix(in srgb, var(--warn) 14%, transparent);
+  color: var(--warn);
+}
+
+.status-dot svg {
+  width: 8px;
+  height: 8px;
+  display: block;
+}
+
+.fixture-status.is-live .status-dot {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.35;
+  }
+}
+
+.fixture-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.fixture-side {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.fixture-badge {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  object-fit: contain;
+  flex: none;
+  background: var(--surface-strong);
+}
+
+.fixture-badge-empty {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  color: var(--muted-strong);
+  border: 1px solid var(--surface-border);
+}
+
+.fixture-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fixture-score {
+  flex: none;
+  font-size: 1.15rem;
+  color: var(--brand-ink);
+  min-width: 1.6em;
+  text-align: right;
+}
+
+.fixture-score.is-empty::before {
+  content: "\2013";
+  color: var(--muted);
+}
+
+.fixture-foot {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.fixture-venue {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fixture-star {
+  margin-left: auto;
+  color: var(--brand-ink);
+}
+
+.fixture-star svg {
+  width: 16px;
+  height: 16px;
+  display: block;
+}
+
+.fixture-note {
+  font-size: 0.75rem;
+  color: var(--warn);
+}
+
+/* ---- detail ---- */
+
+.detail {
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.detail-comp {
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.detail-title {
+  font-size: 1.3rem;
+  color: var(--brand-ink);
+}
+
+.detail-score {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  font-size: 2rem;
+  color: var(--brand-ink);
+}
+
+.detail-score-sep {
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.detail-meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  width: 100%;
+}
+
+.detail-meta dt {
+  font-size: 0.74rem;
+  color: var(--muted);
+}
+
+.detail-meta dd {
+  font-size: 0.88rem;
+}
+
+.detail-note {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: var(--warn);
+}
+
+.detail-note svg {
+  width: 15px;
+  height: 15px;
+}
+
+.detail-subhead {
+  font-size: 1rem;
+  color: var(--brand-ink);
+  margin-top: 6px;
+}
+
+/* ---- results and box scores ---- */
+
+.result-list {
+  list-style: none;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.result-row {
+  display: grid;
+  grid-template-columns: 2.2em 1fr auto auto;
+  gap: 10px;
+  align-items: center;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: var(--surface-strong);
+  font-size: 0.85rem;
+}
+
+.result-pos {
+  color: var(--brand-ink);
+}
+
+.result-team,
+.result-time {
+  color: var(--muted-strong);
+  font-size: 0.78rem;
+}
+
+.box-score {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.box-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: var(--surface-strong);
+  font-size: 0.85rem;
+}
+
+.box-team {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.box-period {
+  flex: none;
+  width: 2em;
+  text-align: center;
+  color: var(--muted-strong);
+}
+
+.box-total {
+  flex: none;
+  color: var(--brand-ink);
+}
+
+/* ---- standings ---- */
+
+.table-wrap {
+  padding: 14px;
+  overflow-x: auto;
+}
+
+.standings {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+
+.standings th,
+.standings td {
+  padding: 8px 6px;
+  text-align: left;
+  border-bottom: 1px solid var(--surface-border);
+  white-space: nowrap;
+}
+
+.standings thead th {
+  color: var(--muted);
+  font-size: 0.74rem;
+}
+
+.standings tbody th {
+  color: var(--brand-ink);
+  font-weight: normal;
+}
+
+/* ---- states ---- */
+
+.state {
+  padding: 26px 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-align: center;
+}
+
+.state-icon {
+  color: var(--brand-ink);
+}
+
+.state-icon svg {
+  width: 28px;
+  height: 28px;
+  display: block;
+}
+
+.state-title {
+  font-size: 1.05rem;
+  color: var(--brand-ink);
+}
+
+.state-body {
+  font-size: 0.86rem;
+  color: var(--muted);
+  max-width: 44ch;
+  line-height: 1.5;
+}
+
+.spinner {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid var(--surface-border);
+  border-top-color: var(--brand-ink);
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ---- search ---- */
+
+.search-form {
+  display: flex;
+  gap: 8px;
+}
+
+.search-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--surface);
+  border: 1px solid var(--surface-border);
+  color: var(--ink);
+  font-size: 0.9rem;
+}
+
+.search-input::placeholder {
+  color: var(--muted-strong);
+  /* A stacked opacity multiplier on the token would put the pair back
+     under AA, so it is pinned to 1. */
+  opacity: 1;
+}
+
+.search-input:focus-visible {
+  outline: 2px solid var(--brand-ink);
+  outline-offset: 1px;
+}
+
+.search-submit {
+  flex: none;
+  padding: 10px 16px;
+  border-radius: 12px;
+  background: var(--brand-fill);
+  color: var(--on-brand);
+  font-size: 0.85rem;
+  transition: background 0.15s ease;
+}
+
+.search-submit:hover {
+  background: var(--brand-fill-strong);
+}
+
+.search-hint {
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.search-results {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 45vh;
+  overflow-y: auto;
+}
+
+.search-result {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: 12px;
+  background: var(--surface);
+  border: 1px solid var(--surface-border);
+  text-align: left;
+  transition: background 0.15s ease;
+}
+
+.search-result:hover {
+  background: var(--brand-fill);
+  color: var(--on-brand);
+}
+
+.search-badge {
+  width: 24px;
+  height: 24px;
+  border-radius: 7px;
+  object-fit: contain;
+  flex: none;
+  background: var(--surface-strong);
+}
+
+.search-badge-empty {
+  border: 1px solid var(--surface-border);
+}
+
+.search-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.88rem;
+}
+
+.search-meta {
+  flex: none;
+  font-size: 0.72rem;
+  color: var(--muted-strong);
+}
+
+.search-result:hover .search-meta {
+  color: var(--on-brand);
+}
+
+.search-star {
+  flex: none;
+  color: var(--brand-ink);
+}
+
+.search-result:hover .search-star {
+  color: var(--on-brand);
+}
+
+.search-star svg {
+  width: 16px;
+  height: 16px;
+  display: block;
+}
+
+/* ---- update and offline bar ----
+   One region, one state machine, one precedence order. Two stacked bars
+   above the header stop being unobtrusive, so views.js and update.js only
+   ever draw one. */
+
+.update-notice {
+  background: color-mix(in srgb, var(--brand) 12%, var(--surface-strong));
+  border-bottom: 1px solid var(--surface-border);
+  color: var(--ink);
+  font-size: 0.875rem;
+}
+
+.update-notice-offline {
+  background: color-mix(in srgb, var(--warn) 14%, transparent);
+  color: var(--warn);
+}
+
+.update-notice-inner {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 0.5rem 1rem;
+  /* Under the notch on a phone, where the bar is the topmost thing on
+     screen. */
+  padding-top: max(0.5rem, env(safe-area-inset-top));
+}
+
+.update-notice p {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.update-notice-icon {
+  flex: none;
+  display: inline-flex;
+}
+
+.update-notice-icon svg {
+  width: 17px;
+  height: 17px;
+  display: block;
+}
+
+.notice-btn {
+  flex: none;
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  transition: background 0.15s ease;
+}
+
+.notice-btn-primary {
+  background: var(--brand-fill-strong);
+  color: var(--on-brand);
+}
+
+.notice-btn-primary:hover {
+  background: var(--brand-fill);
+}
+
+.notice-btn-quiet {
+  color: var(--muted-strong);
+}
+
+.notice-btn-quiet:hover {
+  background: var(--surface);
+}
+
+/* ---- footer ---- */
+
+.footer {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 20px 14px calc(20px + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: center;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+/* The one allowed fixed hex in the app: a heart reads as a heart whatever
+   the brand swatch is. */
+.footer-heart {
+  display: inline-flex;
+  vertical-align: -2px;
+  color: #34c759;
+}
+
+.footer-heart svg {
+  width: 13px;
+  height: 13px;
+  display: block;
+}
+
+.footer-sources {
+  max-width: 52ch;
+  margin: 0 auto;
+  line-height: 1.5;
+}
+
+/* ---- narrow screens ---- */
+
+@media (max-width: 480px) {
+  .wrap {
+    padding: 10px;
+  }
+
+  .topbar-inner {
+    padding: 8px 10px;
+  }
+
+  .tabs {
+    padding: 0 10px 8px;
+  }
+
+  .brand-name {
+    font-size: 1.1rem;
+  }
+
+  .detail-meta {
+    grid-template-columns: 1fr;
+  }
+
+  .result-row {
+    grid-template-columns: 2em 1fr auto;
+  }
+
+  .result-team {
+    display: none;
+  }
+}

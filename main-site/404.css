@@ -310,3 +310,26 @@ body {
     right: -100%;
   }
 }
+/* Back link. This page keeps its own fixed underwater palette rather than
+   the theme tokens, so the colours here are deliberately literal. */
+.back-link {
+  position: relative;
+  z-index: 5;
+  text-align: center;
+  padding-top: 1rem;
+  font-family: "Jua", "Segoe UI", sans-serif;
+}
+
+.back-link a {
+  display: inline-block;
+  padding: 8px 18px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #000065;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.back-link a:hover {
+  background: #ffffff;
+}

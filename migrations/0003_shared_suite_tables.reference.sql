@@ -1,0 +1,80 @@
+-- 0003_shared_suite_tables  (REFERENCE ONLY, DO NOT RUN)
+--
+-- =====================================================================
+-- Every statement in this file is commented out on purpose.
+-- =====================================================================
+--
+-- uwu_users, uwu_sessions and uwu_user_data are shared across the whole
+-- UwU Apps suite, in the single shared Supabase project. uwuSports reads
+-- and writes uwu_user_data; it does not own any of them.
+--
+-- If another app in the suite already created these with a different
+-- column layout, running a CREATE TABLE IF NOT EXISTS here would either
+-- silently no-op and hide the mismatch, or conflict outright. Neither
+-- failure shows up until a reader's favourites quietly stop syncing.
+--
+-- So this file documents the shape uwuSports expects and nothing more.
+-- The app is built to work whether or not these exist: signed out,
+-- favourites live in IndexedDB and never leave the device.
+--
+-- Note the naming split. Tables this app owns carry the uwusports_
+-- prefix, as in uwusports_api_cache. These three do not, because a
+-- favourite is user data belonging to the person across every UwU app,
+-- not to this one.
+--
+-- ---------------------------------------------------------------------
+-- What uwuSports actually needs
+-- ---------------------------------------------------------------------
+--
+-- Only uwu_user_data, and only these four columns:
+--
+--   user_id     the owner, matching uwu_users
+--   namespace   text, and uwuSports writes exactly one value:
+--               'uwusports.favourites'
+--   value       jsonb, holding an array of favourite objects
+--   updated_at  timestamptz
+--
+-- Unique on (user_id, namespace). api/favourites.js upserts with
+-- on_conflict=user_id,namespace, so without that constraint every
+-- change appends a row instead of replacing one.
+--
+-- Each element of value looks like:
+--
+--   {
+--     "key":     "team:basketball:14",
+--     "kind":    "team" | "driver" | "competition",
+--     "sport":   "basketball",
+--     "id":      "14",
+--     "name":    "LA Clippers",
+--     "badge":   null,
+--     "addedAt": "2026-09-22T18:04:00.000Z"
+--   }
+--
+-- ---------------------------------------------------------------------
+-- Indicative DDL, for whoever owns the shared schema
+-- ---------------------------------------------------------------------
+--
+-- create table if not exists public.uwu_user_data (
+--   user_id    uuid        not null references public.uwu_users (id) on delete cascade,
+--   namespace  text        not null,
+--   value      jsonb       not null default '[]'::jsonb,
+--   updated_at timestamptz not null default now(),
+--   primary key (user_id, namespace)
+-- );
+--
+-- alter table public.uwu_user_data enable row level security;
+--
+-- Policies are deliberately omitted even from this reference. uwuSports
+-- reaches this table only through its serverless functions using the
+-- service role key, which bypasses RLS. Any policy here has to be written
+-- against whatever the suite uses to identify a caller, and guessing at
+-- that is how a policy ends up either useless or wide open.
+--
+-- ---------------------------------------------------------------------
+-- Before the login flow ships
+-- ---------------------------------------------------------------------
+--
+-- sessionFor() in main-site/api/favourites.js returns null today, so every
+-- call to /api/favourites answers 401 and the client stays on IndexedDB.
+-- That function is the only thing that needs filling in once the real
+-- uwu_sessions layout is confirmed. Nothing else in uwuSports changes.

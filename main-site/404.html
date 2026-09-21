@@ -2,11 +2,32 @@
 <html lang="en">
 
 <head>
-    <link rel="manifest" href="../manifest.json" />
+    <script>
+        /* Pre-paint theme resolution, matching the template in index.html.
+           The two hours match LIGHT_FROM_HOUR and LIGHT_UNTIL_HOUR in
+           /js/theme.js; change them together. */
+        (function () {
+            var k = "uwusports";
+            var m = localStorage.getItem(k + ".mode") || "light";
+
+            document.documentElement.setAttribute("data-mode-preference", m);
+            if (m === "time") {
+                var h = new Date().getHours();
+                m = h >= 9 && h < 18 ? "light" : "dark";
+            }
+
+            var c = localStorage.getItem(k + ".colorTheme") || "classic";
+            document.documentElement.setAttribute("data-mode", m);
+            document.documentElement.setAttribute("data-color-theme", c);
+        })();
+    </script>
+
+    <link rel="manifest" href="/manifest.json" />
 
     <meta charset="utf-8">
     <title>Page Not Found | UwU Apps</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="That page does not exist on uwuSports.">
 
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-FMCYFTFPEL"></script>
@@ -23,19 +44,21 @@
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9715826188316382"
         crossorigin="anonymous"></script>
 
-    <link rel="stylesheet" href="404.css" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Jua">
+    <link rel="stylesheet" href="/404.css" />
+    <meta name="theme-color" content="#ccffcc" />
 
     <meta property="og:type" content="website">
     <meta property="og:title" content="404" />
     <meta property="og:site_name" content="uwuSports | UwU Apps" />
 
     <!-- Embed Image -->
-    <link rel="apple-touch-icon" href="/USC.png">
+    <link rel="apple-touch-icon" href="/USC-192.png">
     <link rel="icon" href="/favicon.ico">
     <link rel="shortcut icon" href="/favicon.ico">
     <meta name="twitter:card" content="summary">
-    <meta name="twitter:image:src" content="/USC.png">
-    <meta property="og:image" content="/USC.png"/>
+    <meta name="twitter:image:src" content="/USC-main.png">
+    <meta property="og:image" content="/USC-main.png"/>
 </head>
 
 <body>
@@ -65,10 +88,14 @@
         <div class="wave1"></div>
         <div class="wave2"></div>
     </div>
-    <script>
-        if (typeof navigator.serviceWorker !== 'undefined') {
-            navigator.serviceWorker.register('sw.js')
-        }
+    <p class="back-link"><a href="/">Back to uwuSports</a></p>
+
+    <!-- The service worker is registered once for the whole site by
+         /js/update.js, which holds the registration object the update bar
+         needs. An inline register() here would have nowhere to hand it. -->
+    <script type="module">
+        import { initUpdateBar } from "/js/update.js";
+        initUpdateBar();
     </script>
 </body>
 
