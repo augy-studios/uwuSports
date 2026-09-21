@@ -83,7 +83,7 @@ noticing.
 | balldontlie | NBA | Free, no card | ~60/minute |
 | TheSportsDB | Badges, artwork, multi-sport browse | Public test key | 30/minute |
 | football-data.org | Football | Free, no card | 10/minute |
-| API-Sports.io | Secondary, gap filling only | Free, no card | 100/**day** per sport |
+| Highlightly | Secondary, gap sports only | Free, no card | 100/**day** |
 | ESPN | Live score enhancement only | None | Undocumented |
 
 Two honest gaps, both visible in the app rather than hidden:

@@ -9,7 +9,7 @@ normalised fixture, so replacing a source touches its file and nothing else.
 | [`balldontlie.js`](balldontlie.js) | NBA | Required | ~60/minute |
 | [`thesportsdb.js`](thesportsdb.js) | Badges, artwork, multi-sport browse | Public test key | 30/minute |
 | [`footballdata.js`](footballdata.js) | Football | Required | 10/minute |
-| [`apisports.js`](apisports.js) | Secondary, 12 sports | Required | 100/**day** per sport |
+| [`highlightly.js`](highlightly.js) | Hockey, rugby, handball, volleyball, cricket | Required | 100/**day** |
 | [`espn.js`](espn.js) | Live score enhancement only | None | Undocumented |
 
 ## The contract
@@ -82,13 +82,30 @@ There is no team search endpoint on the free tier. `searchTeams()` walks
 cached competition tables instead of spending requests on a lookup that does
 not exist.
 
-### apisports.js
+### highlightly.js
 
-**100 requests a day, per sport.** Never use it for anything a primary
-source can serve. It exists for gaps, and everything through it is cached at
-the standings or metadata TTL, never the live one. One key works across
-every sport host. `remainingQuota()` is surfaced by `/api/health` so the
-quota is visible before it runs out rather than after.
+**100 requests a day, across the whole key.** Never use it for anything a
+primary source can serve. It exists for the gap sports, and everything
+through it is cached at the schedule TTL, never the live one.
+
+`GAP_SPORTS` is the list it actually serves: hockey, rugby, handball,
+volleyball and cricket. Football and basketball are deliberately excluded
+even though Highlightly covers them, because football-data and balldontlie
+own those sections and duplicating them would spend the daily budget on
+data the app already has.
+
+Each sport is its own subdomain sharing one key and one schema, which is
+what keeps this one adapter rather than nine. `HIGHLIGHTLY_USE_RAPIDAPI=1`
+routes through the RapidAPI distribution of the same service instead; same
+key header, same data.
+
+`state.score.current` is a display string like `"2 - 1"` rather than a pair
+of numbers. `splitScore()` parses it, and anything unparseable stays `null`:
+a nil-nil draw and a match with no score published are different facts.
+
+This replaced an API-Sports adapter. That service's signup dashboard at
+`dashboard.api-sports.io` stopped resolving, so a key could no longer be
+obtained. Highlightly is a like for like swap on tier, price and coverage.
 
 ### espn.js
 

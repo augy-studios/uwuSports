@@ -1,25 +1,22 @@
 /* GET /api/health
 
-   Which sources are configured, and how much of API-Sports' daily 100 is
-   left. Useful when a section is empty and the question is whether an
-   upstream is down or a key was never set.
+   Which sources are configured. Useful when a section is empty and the
+   question is whether an upstream is down or a key was never set.
 
-   Reports configuration only. It reports no key values, and it makes no
-   upstream calls other than the API-Sports quota check, which does not
-   count against the quota it reports. */
+   Reports configuration only. It reports no key values and makes no
+   upstream calls at all, so hitting it is free and cannot itself consume
+   any source's quota. */
 
 import { ok, methodGuard } from "./_lib/respond.js";
 import { hasSupabase } from "./_lib/supabase.js";
 
 import * as balldontlie from "./_lib/sources/balldontlie.js";
 import * as footballdata from "./_lib/sources/footballdata.js";
-import * as apisports from "./_lib/sources/apisports.js";
+import * as highlightly from "./_lib/sources/highlightly.js";
 import * as espn from "./_lib/sources/espn.js";
 
 export default async function handler(req, res) {
   if (!methodGuard(req, res)) return;
-
-  const quota = await apisports.remainingQuota().catch(() => null);
 
   const body = {
     sources: {
@@ -33,10 +30,12 @@ export default async function handler(req, res) {
         configured: footballdata.isConfigured(),
         note: footballdata.isConfigured() ? "Ready." : "FOOTBALL_DATA_API_KEY is not set, so the football section is off.",
       },
-      apisports: {
-        configured: apisports.isConfigured(),
-        quota,
-        note: apisports.isConfigured() ? "Secondary source only." : "API_SPORTS_KEY is not set.",
+      highlightly: {
+        configured: highlightly.isConfigured(),
+        sports: highlightly.GAP_SPORTS,
+        note: highlightly.isConfigured()
+          ? "Secondary source, 100 requests a day. Gap sports only."
+          : "HIGHLIGHTLY_API_KEY is not set, so hockey, rugby and the other gap sports are off.",
       },
       espn: {
         configured: espn.isEnabled(),

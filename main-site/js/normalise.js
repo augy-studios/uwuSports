@@ -104,6 +104,12 @@ export const SPORT_LABELS = {
   multi: "Other sports",
   badminton: "Badminton",
   olympics: "Olympics",
+  // The gap sports, which reach the browse section through Highlightly.
+  hockey: "Ice hockey",
+  rugby: "Rugby",
+  handball: "Handball",
+  volleyball: "Volleyball",
+  cricket: "Cricket",
 };
 
 export const SPORT_ICONS = {
@@ -113,6 +119,11 @@ export const SPORT_ICONS = {
   multi: "globe",
   badminton: "trophy",
   olympics: "trophy",
+  hockey: "trophy",
+  rugby: "trophy",
+  handball: "trophy",
+  volleyball: "trophy",
+  cricket: "trophy",
 };
 
 export function sportLabel(id) {

@@ -44,7 +44,7 @@ service role key.
 **Only `0001`.** That one table is the shared cache, and without it the
 serverless functions fall back to per instance in-memory caching and log a
 warning. The site still works; it just hits the upstreams harder, which
-matters most for API-Sports at 100 requests a day.
+matters most for Highlightly at 100 requests a day.
 
 `0002` is housekeeping. Expired rows never affect correctness, since every
 read checks `expires_at`. They are a storage cost, nothing more.

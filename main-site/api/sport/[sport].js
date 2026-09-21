@@ -16,6 +16,7 @@ import * as jolpica from "../_lib/sources/jolpica.js";
 import * as balldontlie from "../_lib/sources/balldontlie.js";
 import * as footballdata from "../_lib/sources/footballdata.js";
 import * as thesportsdb from "../_lib/sources/thesportsdb.js";
+import * as highlightly from "../_lib/sources/highlightly.js";
 import * as espn from "../_lib/sources/espn.js";
 
 /* The two gaps, stated rather than hidden. Neither has a free data source
@@ -109,7 +110,30 @@ const COLLECTORS = {
   },
 
   async multi(date) {
-    const fixtures = await thesportsdb.fetchByDate(date);
-    return { sport: "multi", fixtures: sortFixtures(dedupe(fixtures)), notes: [] };
+    /* TheSportsDB carries the browse section on its own. Highlightly adds
+       the sports it covers better, when a key is set, and contributes
+       nothing when one is not. Settled independently so the section still
+       renders if either is down. */
+    const [tsdb, gaps] = await Promise.allSettled([
+      thesportsdb.fetchByDate(date),
+      highlightly.fetchGapSports(date),
+    ]);
+
+    const fixtures = [
+      ...(tsdb.status === "fulfilled" ? tsdb.value : []),
+      ...(gaps.status === "fulfilled" ? gaps.value : []),
+    ];
+
+    const notes = [];
+    if (tsdb.status === "rejected") {
+      notes.push({ source: "TheSportsDB", reason: tsdb.reason?.message || "unavailable" });
+    }
+    if (gaps.status === "rejected") {
+      notes.push({ source: "Highlightly", reason: gaps.reason?.message || "unavailable" });
+    }
+
+    /* Both sources can carry the same match, so dedupe picks the richer
+       record rather than showing it twice. */
+    return { sport: "multi", fixtures: sortFixtures(dedupe(fixtures)), notes };
   },
 };

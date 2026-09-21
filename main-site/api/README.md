@@ -7,7 +7,7 @@ Three reasons, all of them load bearing:
 
 1. **API keys stay server side.** A key in a client bundle is a public key.
 2. **Rate limits are enforced centrally.** balldontlie allows 60 requests a
-   minute and API-Sports allows 100 a *day*. One shared cache in front of
+   minute and Highlightly allows 100 a *day*. One shared cache in front of
    them is the difference between a working app and a throttled one.
 3. **CORS stops being a problem.** Several of these upstreams do not send
    permissive headers, and two of them are not really public APIs at all.
@@ -23,7 +23,7 @@ Three reasons, all of them load bearing:
 | `GET /api/search?q=` | Teams, drivers and competitions across every configured source |
 | `GET /api/favourites` | The signed-in reader's starred items |
 | `POST /api/favourites` | Add or remove one |
-| `GET /api/health` | Which sources are configured, and API-Sports quota left |
+| `GET /api/health` | Which sources are configured, and which sports each covers |
 
 ### The response envelope
 
