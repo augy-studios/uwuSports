@@ -81,7 +81,7 @@ than failing the view.
 ### The table
 
 The SQL lives in [`../../migrations/`](../../migrations/), not here, so
-there is one copy of it rather than two that drift apart. Apply
+there is one copy of it instead of two that drift apart. Apply
 `0001_uwusports_api_cache.sql` and you are done.
 
 Two things about it worth knowing without opening the file:
@@ -153,6 +153,6 @@ These are behavioural, not stylistic:
 2. Return normalised fixtures via `makeFixture()`. Never leak the upstream's
    own shape past this file.
 3. Register it in the relevant endpoint's task list, inside the
-   `Promise.allSettled` so a failure degrades rather than cascades.
+   `Promise.allSettled` so a failure degrades without cascading.
 4. Add its variable to `.env.example`, including what happens when unset.
 5. Pick the right TTL. When in doubt, the longer one.

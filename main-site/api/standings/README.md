@@ -26,6 +26,6 @@ sport's table with one function:
 Rows are arrays of strings, already ordered. Sorting belongs in the adapter,
 not the renderer.
 
-A source with no table answers `available: false` and a reason rather than
+A source with no table answers `available: false` and a reason in place of
 an empty table, which would read as "this league has no standings" instead
 of "this source does not publish them".

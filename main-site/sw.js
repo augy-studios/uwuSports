@@ -115,14 +115,14 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(request.url);
 
   // Navigations: network first, falling back to the cached shell, so a
-  // reader offline gets the app rather than the browser's error page.
+  // reader offline gets the app instead of the browser's error page.
   if (request.mode === "navigate") {
     event.respondWith(navigationHandler(request));
     return;
   }
 
   // Our own API: network first, and on failure serve the last good payload
-  // marked stale so the UI can say so rather than showing an error.
+  // marked stale so the UI can say so without showing an error.
   if (url.origin === self.location.origin && url.pathname.startsWith("/api/")) {
     event.respondWith(payloadNetworkFirst(request));
     return;

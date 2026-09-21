@@ -32,7 +32,7 @@ initUpdateBar();      // registers the worker on load, not now
 ## theme.js
 
 Copied from `uwuapps-theme.md` at the repo root. **Change `APP_KEY` only.**
-If the canonical version in the spec changes, re-copy it rather than
+If the canonical version in the spec changes, re-copy it in preference to
 patching this one by hand.
 
 Two things that look like one:

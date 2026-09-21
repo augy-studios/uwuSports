@@ -3,7 +3,7 @@
 SQL for the shared uwuapps Supabase project. Plain `.sql` files, numbered,
 applied in order.
 
-This directory sits at the repo root rather than inside `main-site/`, and
+This directory sits at the repo root instead of inside `main-site/`, and
 that is deliberate: Vercel's root directory is `main-site`, so anything in
 there is uploaded on every deploy and, unless excluded, served at a public
 URL. Schema definitions have no business being fetchable over HTTP.

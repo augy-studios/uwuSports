@@ -5,7 +5,7 @@
 
    Every source is queried in parallel and settled independently: a source
    that is unconfigured, rate limited or down contributes nothing and is
-   reported in `notes`, rather than failing the whole dashboard. That is
+   reported in `notes`, without failing the whole dashboard. That is
    the difference between a bad afternoon for one API and a broken app. */
 
 import { cached, cacheKey, TTL } from "./_lib/cache.js";

@@ -1,7 +1,7 @@
 /* IndexedDB. Two jobs:
 
    1. The last successful payload per view, so an offline reader sees the
-      last known data with a stale indicator rather than an error page. The
+      last known data with a stale indicator in place of an error page. The
       service worker also caches API responses, but this copy is what
       survives a cache eviction and what carries the fetched-at stamp the
       UI shows.

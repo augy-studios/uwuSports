@@ -135,7 +135,7 @@ export function renderFixtureDetail(container, fixture) {
         ${fixture.source ? `<div><dt>Data from</dt><dd>${escapeHtml(fixture.source)}</dd></div>` : ""}
       </dl>
 
-      ${fixture.delayed ? `<p class="detail-note"><span data-icon="info" aria-hidden="true"></span> Scores from this source are delayed rather than live.</p>` : ""}
+      ${fixture.delayed ? `<p class="detail-note"><span data-icon="info" aria-hidden="true"></span> Scores from this source are delayed and not live.</p>` : ""}
       ${extras}
     </article>
   `;
@@ -229,7 +229,7 @@ export function loadingState(label = "Loading fixtures") {
   `;
 }
 
-/* The two coverage gaps. Stated plainly rather than hidden, and no
+/* The two coverage gaps. Stated plainly and not hidden, and no
    placeholder fixtures are ever shipped for either. */
 export function comingSoonState(sport) {
   const copy = {

@@ -310,7 +310,7 @@ body {
     right: -100%;
   }
 }
-/* Back link. This page keeps its own fixed underwater palette rather than
+/* Back link. This page keeps its own fixed underwater palette in place of
    the theme tokens, so the colours here are deliberately literal. */
 .back-link {
   position: relative;

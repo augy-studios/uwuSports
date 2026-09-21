@@ -34,7 +34,7 @@ Three rules:
    is reaching into a raw response, the mapping belongs here instead.
 
 A source needing a key exports `isConfigured()`. Callers check it and return
-`available: false` with a reason rather than calling and failing.
+`available: false` with a reason in place of calling and failing.
 
 ## Per source
 
@@ -65,7 +65,7 @@ fetched only on the detail view, never for a list.
 **Never a live scores source.** Livescores are premium only, so an event
 with a score is finished and one without is scheduled. Many search queries
 are restricted on the free tier, which is why `searchTeams()` returns an
-empty array on failure rather than throwing.
+empty array on failure instead of throwing.
 
 Its real job is badges. `decorateBadges()` is bounded to 12 lookups per call
 and memoised per invocation, so a busy Saturday does not fire 80 requests at
@@ -76,7 +76,7 @@ to an initial.
 
 **Delayed on the free tier**, so `delayed: true` throughout. The tightest
 limit of the primary sources at 10 a minute, so `fetchByDate()` covers every
-competition in one call rather than looping.
+competition in one call instead of looping.
 
 There is no team search endpoint on the free tier. `searchTeams()` walks
 cached competition tables instead of spending requests on a lookup that does
@@ -95,11 +95,11 @@ own those sections and duplicating them would spend the daily budget on
 data the app already has.
 
 Each sport is its own subdomain sharing one key and one schema, which is
-what keeps this one adapter rather than nine. `HIGHLIGHTLY_USE_RAPIDAPI=1`
+what keeps this one adapter instead of nine. `HIGHLIGHTLY_USE_RAPIDAPI=1`
 routes through the RapidAPI distribution of the same service instead; same
 key header, same data.
 
-`state.score.current` is a display string like `"2 - 1"` rather than a pair
+`state.score.current` is a display string like `"2 - 1"` in place of a pair
 of numbers. `splitScore()` parses it, and anything unparseable stays `null`:
 a nil-nil draw and a match with no score published are different facts.
 

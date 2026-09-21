@@ -6,7 +6,7 @@ suite, deployed at `sports.uwuapps.org`.
 Formula 1, the NBA, football and a general multi-sport browse, all normalised
 into one shape so the interface does not care which API a fixture came from.
 Works offline, showing the last data it saved with a clear stale indicator
-rather than an error page.
+in place of an error page.
 
 ## What is here
 
@@ -43,7 +43,7 @@ vercel dev
 The site boots with no environment variables at all. Formula 1 and the
 multi-sport browse work immediately, since neither source needs a key. The
 NBA and football sections report themselves as unconfigured until you set
-their keys, rather than showing invented fixtures. Copy
+their keys, without showing invented fixtures. Copy
 [`main-site/.env.example`](main-site/.env.example) to `main-site/.env.local`
 and fill in what you want.
 
@@ -86,7 +86,7 @@ noticing.
 | Highlightly | Secondary, gap sports only | Free, no card | 100/**day** |
 | ESPN | Live score enhancement only | None | Undocumented |
 
-Two honest gaps, both visible in the app rather than hidden:
+Two honest gaps, both visible in the app and not hidden:
 
 - **Badminton.** No free API exists. The BWF publishes none, and the
   community scrapers have been IP-banned. The section ships behind a
@@ -103,7 +103,7 @@ worth more than a full one that is lying.
 **Everything runs on Vercel. Nothing here needs the Debian VPS.**
 
 Every upstream call is a short-lived HTTPS request that fits comfortably in
-a serverless function, the cache is Postgres rather than a local disk, and
+a serverless function, the cache is Postgres and not a local disk, and
 there is no long-running process, no cron, no websocket and no scraper. The
 one thing that would have justified the VPS, a poller keeping its own live
 feed warm, is deliberately not built: the free tiers' rate limits are lower
@@ -116,7 +116,7 @@ machine to maintain and nothing else.
 
 ## Conventions
 
-These are enforced by review rather than by a linter, and they are not
+These are enforced by review and not by a linter, and they are not
 stylistic preferences:
 
 - **No emoji.** Every icon is inline SVG from `main-site/js/icons.js`.

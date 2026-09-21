@@ -16,7 +16,7 @@
    swap on tier, price and coverage, and both of its hosts respond.
 
    Each sport is its own subdomain sharing one key and one schema, which is
-   what keeps this a single adapter rather than one per sport. */
+   what keeps this a single adapter instead of one per sport. */
 
 import { getJson, UpstreamError } from "../http.js";
 import { makeFixture, mapStatus, toNumberOrNull, toISO } from "../normalise.js";
@@ -76,8 +76,8 @@ function headers(sport) {
   return value;
 }
 
-/* state.score.current is a display string, "2 - 1", rather than a pair of
-   numbers. Anything unparseable stays null rather than becoming a zero:
+/* state.score.current is a display string, "2 - 1", in place of a pair of
+   numbers. Anything unparseable stays null without becoming a zero:
    a nil-nil draw and a match with no score published are different facts. */
 function splitScore(state) {
   const raw = state?.score?.current;
@@ -109,7 +109,7 @@ function matchToFixture(match, sport) {
     sourceTimezone: "UTC",
     /* Highlightly publishes a live clock, but on a 100 a day budget this
        is polled at the schedule TTL, so what a reader sees is minutes old
-       by design. Labelled delayed rather than pretending otherwise. */
+       by design. Labelled delayed as opposed to pretending otherwise. */
     delayed: true,
     homeBadge: match.homeTeam?.logo || null,
     awayBadge: match.awayTeam?.logo || null,
@@ -123,7 +123,7 @@ export async function fetchByDate(sport, date) {
   const data = await getJson(url, { source: SOURCE, headers: headers(sport) });
 
   /* The payload is { data: [...] } on the direct hosts and a bare array on
-     some endpoints, so both are accepted rather than assuming one. */
+     some endpoints, so both are accepted instead of assuming one. */
   const matches = Array.isArray(data) ? data : data?.data || [];
 
   return matches.map((match) => matchToFixture(match, sport));

@@ -1,6 +1,6 @@
 /* A tiny Supabase REST client.
 
-   Hand written rather than pulling in @supabase/supabase-js, because this
+   Hand written in preference to pulling in @supabase/supabase-js, because this
    project has no build step and needs exactly two verbs: select and upsert.
    Everything goes through the PostgREST endpoint with the service role key,
    which never reaches the browser.

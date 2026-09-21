@@ -64,7 +64,7 @@ export function todayISODate() {
 }
 
 /* A date from the query string, validated. An unparseable one falls back
-   to today rather than being passed through to an upstream. */
+   to today without being passed through to an upstream. */
 export function dateParam(query) {
   const raw = query?.date;
   if (typeof raw === "string" && /^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;

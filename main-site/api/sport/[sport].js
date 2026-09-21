@@ -4,7 +4,7 @@
    basketball, formula1, football or multi.
 
    badminton and olympics are answered here too, with an explicit
-   unavailable payload rather than a 404, so the client can render the
+   unavailable payload instead of a 404, so the client can render the
    honest coming-soon state instead of an error. No placeholder fixtures
    are ever returned for either. */
 
@@ -19,7 +19,7 @@ import * as thesportsdb from "../_lib/sources/thesportsdb.js";
 import * as highlightly from "../_lib/sources/highlightly.js";
 import * as espn from "../_lib/sources/espn.js";
 
-/* The two gaps, stated rather than hidden. Neither has a free data source
+/* The two gaps, stated and not hidden. Neither has a free data source
    that exists, so neither is stubbed with fake fixtures. */
 const UNAVAILABLE = {
   badminton: {
@@ -133,7 +133,7 @@ const COLLECTORS = {
     }
 
     /* Both sources can carry the same match, so dedupe picks the richer
-       record rather than showing it twice. */
+       record instead of showing it twice. */
     return { sport: "multi", fixtures: sortFixtures(dedupe(fixtures)), notes };
   },
 };

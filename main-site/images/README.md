@@ -1,7 +1,7 @@
 # images
 
 Screenshots referenced by [`../manifest.json`](../manifest.json). They are
-what an install prompt shows, so they are product assets rather than
+what an install prompt shows, so they are product assets and not
 decoration.
 
 | File | Size | Form factor |

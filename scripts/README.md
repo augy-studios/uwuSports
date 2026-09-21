@@ -27,6 +27,6 @@ Two assertions, both from `update-bar-spec.md`:
    so a worker with no changing version is an update prompt nobody ever
    sees.
 
-The handler's extent is measured by brace depth rather than assumed, and
+The handler's extent is measured by brace depth and not assumed, and
 comments are stripped before scanning, so the prose in `sw.js` explaining
 the rule does not read as a violation of it.

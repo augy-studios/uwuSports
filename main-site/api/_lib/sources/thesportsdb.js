@@ -29,7 +29,7 @@ function eventToFixture(event) {
   const hasScore = scoreHome !== null && scoreAway !== null;
 
   /* No livescore on the free tier, so an event with a score is finished
-     and one without has not started. Anything else is unknown rather than
+     and one without has not started. Anything else is unknown and not
      guessed at. */
   let status = mapStatus(event.strStatus);
   if (status === "unknown" || status === "live") status = hasScore ? "finished" : "scheduled";
@@ -87,7 +87,7 @@ export async function fetchLeagueSeason(leagueId, season) {
   return (data?.events || []).map(eventToFixture);
 }
 
-/* Badge for a team name. Returns null rather than throwing: a missing
+/* Badge for a team name. Returns null instead of throwing: a missing
    badge is a cosmetic gap, and the card falls back to an initial. */
 export async function badgeFor(teamName) {
   if (!teamName) return null;
@@ -153,7 +153,7 @@ export async function searchTeams(query) {
     }));
   } catch {
     /* Search is restricted on the free tier often enough that a failure
-       here is expected rather than exceptional. */
+       here is expected as opposed to exceptional. */
     return [];
   }
 }

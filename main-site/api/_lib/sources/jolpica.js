@@ -23,7 +23,7 @@ function seasonFor(date) {
 
 /* A grand prix is not two teams against each other, so the shared shape
    bends a little here: homeName carries the race name and awayName the
-   circuit. That keeps one card component for the whole app rather than a
+   circuit. That keeps one card component for the whole app instead of a
    special case in the UI, which was the point of normalising. */
 function raceToFixture(race, status) {
   return makeFixture({
@@ -52,7 +52,7 @@ function statusForRace(race) {
   const now = Date.now();
 
   // A grand prix runs about two hours. Jolpica publishes no live flag, so
-  // the window is inferred rather than reported, and it is never labelled
+  // the window is inferred and not reported, and it is never labelled
   // as a live score, only as in progress.
   if (now < startMs) return "scheduled";
   if (now < startMs + 2.5 * 60 * 60 * 1000) return "live";

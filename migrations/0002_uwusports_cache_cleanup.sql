@@ -38,7 +38,7 @@ comment on function public.uwusports_prune_api_cache() is
 --   select public.uwusports_prune_api_cache();
 --
 -- Or schedule it, if pg_cron is enabled on the project. It is not enabled
--- by default, which is why this is commented rather than run:
+-- by default, which is why this is commented instead of run:
 --
 --   create extension if not exists pg_cron;
 --   select cron.schedule(

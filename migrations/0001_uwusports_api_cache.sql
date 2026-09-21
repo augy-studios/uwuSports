@@ -38,5 +38,5 @@ create index if not exists uwusports_api_cache_expires_at_idx
 --
 -- Only the service role key touches this table, and that key bypasses RLS
 -- entirely. Leaving RLS enabled with no policy means a leaked anon key
--- reaches nothing here, rather than reading every cached payload.
+-- reaches nothing here, and not every cached payload.
 alter table public.uwusports_api_cache enable row level security;

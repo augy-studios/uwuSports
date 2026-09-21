@@ -1,7 +1,7 @@
 # main-site
 
 The deployable site. Vercel's root directory is set to this folder, which is
-why `api/` sits inside it rather than at the repo root.
+why `api/` sits inside it instead of at the repo root.
 
 Everything here ships as written. There is no build step, so the file you
 edit is the file a reader gets.
@@ -12,7 +12,7 @@ edit is the file a reader gets.
 |---|---|
 | [`index.html`](index.html) | The app. Its `<head>` is the template every other page in the repo copies. |
 | [`offline.html`](offline.html) | Shown only when the reader is offline and nothing has been cached for the view yet. |
-| [`404.html`](404.html) / [`404.css`](404.css) | Not found. Keeps its own fixed underwater palette rather than the theme tokens. |
+| [`404.html`](404.html) / [`404.css`](404.css) | Not found. Keeps its own fixed underwater palette in place of the theme tokens. |
 | [`css/`](css/) | `theme.css` for the token system, `style.css` for the app. |
 | [`js/`](js/) | The client, as ES modules. |
 | [`api/`](api/) | Vercel serverless functions and the adapters behind them. |

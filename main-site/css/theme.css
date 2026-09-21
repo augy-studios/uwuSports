@@ -293,7 +293,7 @@ body.modal-open {
 /* Time based mode only. Light and dark stay side by side and the third
    spans the row beneath them: two equal columns would put the longer label
    in a box too narrow to read at 320px, and the full width row also signals
-   this is a different kind of choice, a rule for picking a mode rather than
+   this is a different kind of choice, a rule for picking a mode instead of
    a mode. */
 .mode-btn-wide {
   grid-column: 1 / -1;

@@ -2,13 +2,13 @@
 
    The free tier now requires a free API key from app.balldontlie.io, no
    card. Roughly 60 requests a minute. Without BALLDONTLIE_API_KEY set,
-   every function here throws a configuration error rather than returning
+   every function here throws a configuration error instead of returning
    invented games; the endpoint turns that into an honest "not configured"
    state in the UI.
 
    Live game data refreshes upstream about every 10 minutes, so every
    fixture from this source carries delayed: true and the UI labels it as
-   delayed rather than live. */
+   delayed and not live. */
 
 import { getJson, UpstreamError } from "../http.js";
 import { makeFixture, mapStatus, toNumberOrNull, toISO } from "../normalise.js";

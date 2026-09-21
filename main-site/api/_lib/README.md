@@ -33,12 +33,12 @@ L2 and is the one that matters, because Vercel functions do not share memory
 and a cold start would otherwise go straight to an upstream that allows 100
 requests a day.
 
-Build keys with `cacheKey(["today", date])` rather than string concatenation,
+Build keys with `cacheKey(["today", date])` over string concatenation,
 so casing and separators stay consistent.
 
 ## supabase.js
 
-Hand written rather than pulling in `@supabase/supabase-js`, because this
+Hand written in preference to pulling in `@supabase/supabase-js`, because this
 project has no build step and needs exactly three verbs. It speaks PostgREST
 over `fetch` with the service role key.
 
@@ -51,7 +51,7 @@ browser, and nothing here should ever be imported from a client module.
 
 ## http.js
 
-Always use `getJson()` rather than bare `fetch` for an upstream. It gives
+Always use `getJson()` over bare `fetch` for an upstream. It gives
 you a timeout, so a hanging API cannot hold an invocation open until the
 platform kills it, and an `UpstreamError` carrying which source failed,
 which is what the cache layer logs when it decides to serve stale.

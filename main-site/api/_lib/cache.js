@@ -9,7 +9,7 @@
    saves a Postgres round trip, and it is the entire cache when Supabase is
    not configured, which keeps the app working with no database at all.
 
-   On upstream failure we serve stale and say so, rather than failing the
+   On upstream failure we serve stale and say so, without failing the
    view. The UI needs to be able to tell a fresh answer from a saved one. */
 
 import { supabase, hasSupabase } from "./supabase.js";

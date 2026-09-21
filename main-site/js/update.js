@@ -76,7 +76,7 @@ function registerWorker() {
       console.warn("service worker registration failed:", cause);
     });
 
-  /* The swap, once somebody has accepted it. Reloading here rather than in
+  /* The swap, once somebody has accepted it. Reloading here instead of in
      the click handler is what makes the page come back on the new version:
      the controller has changed by this point, so the reload is served by
      the new worker and not the one being replaced. */
@@ -145,7 +145,7 @@ function render() {
   if (!existing) document.body.prepend(bar);
 }
 
-/* Inlined rather than imported from icons.js so the bar can draw before the
+/* Inlined instead of imported from icons.js so the bar can draw before the
    rest of the app has hydrated, including on the offline page. */
 function cloudOffIcon() {
   return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l18 18"/><path d="M8.3 8.3A4.5 4.5 0 0 0 7 17h9.2"/><path d="M11.4 5.2A5.5 5.5 0 0 1 20 10a4 4 0 0 1 .9 7.5"/></svg>`;

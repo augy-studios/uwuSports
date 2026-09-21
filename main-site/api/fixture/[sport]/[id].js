@@ -4,7 +4,7 @@
    detail view shows, and the per-sport extras. Box score for the NBA,
    race results for Formula 1, half time and officials for football.
 
-   The extras are the reason this is a separate endpoint rather than a
+   The extras are the reason this is a separate endpoint instead of a
    filter over the list: they cost an extra upstream call each, and paying
    that for every card on the dashboard would exhaust a daily quota in an
    afternoon. */

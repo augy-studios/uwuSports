@@ -7,7 +7,7 @@
      stale   the upstream failed and the server served its last good copy,
              or we are offline and read our own IndexedDB copy
      empty   nothing cached and nothing reachable, which is the only case
-             that shows an error rather than data */
+             that shows an error in place of data */
 
 import { savePayload, readPayload } from "./store.js";
 
@@ -45,7 +45,7 @@ export async function request(path, params = {}, { signal } = {}) {
       headers: { Accept: "application/json" },
     });
 
-    /* The service worker stamps a served-from-cache response rather than
+    /* The service worker stamps a served-from-cache response without
        letting it look fresh. */
     const swStale = response.headers.get("x-uwu-stale") === "1";
 

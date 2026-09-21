@@ -4,7 +4,7 @@
    Two backends behind one interface. Signed out, everything lives in
    IndexedDB and never leaves the device. Signed in, the same operations
    also write to uwu_user_data through /api/favourites, which is the shared
-   suite table rather than anything uwuSports owns.
+   suite table and not anything uwuSports owns.
 
    The signed-in branch is wired but dormant: uwuSports ships no login UI
    yet, so isSignedIn() is always false until the uwu_users session cookie
