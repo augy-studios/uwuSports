@@ -96,20 +96,20 @@
 
         <nav class="tabs" aria-label="Sports">
             <a class="tab" href="#today" data-route="today">Today</a>
+            <a class="tab" href="#browse" data-route="browse">Others</a>
             <a class="tab" href="#favourites" data-route="favourites">Favourites</a>
             <a class="tab" href="#nba" data-route="nba">NBA</a>
             <a class="tab" href="#f1" data-route="f1">Formula 1</a>
             <a class="tab" href="#football" data-route="football">Football</a>
-            <a class="tab" href="#browse" data-route="browse">Browse</a>
             <a class="tab" href="#badminton" data-route="badminton">Badminton</a>
             <a class="tab" href="#olympics" data-route="olympics">Olympics</a>
         </nav>
     </header>
 
     <main class="wrap">
-        <!-- Browse only. Hidden on every other route, so the second row of
-             tabs never appears above a section it cannot filter. -->
-        <nav class="subtabs hidden" id="browseTabs" aria-label="Filter browse by sport"></nav>
+        <!-- Today and Others. Hidden on every other route, so the second
+             row of tabs never appears above a section it cannot filter. -->
+        <nav class="subtabs hidden" id="browseTabs" aria-label="Filter by sport"></nav>
         <p class="freshness" id="freshness" role="status" aria-live="polite"></p>
         <div id="view"></div>
         <div id="standings"></div>

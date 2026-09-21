@@ -16,6 +16,7 @@ import {
   renderStandings,
   renderBrowseTabs,
   renderBrowse,
+  sportsPresent,
   renderFixtureDetail,
   loadingState,
   emptyState,
@@ -198,10 +199,17 @@ let lastResult = null;
    renders from memory; only the refresh button clears it. */
 const loaded = new Map();
 
-/* Which browse sub-tab is selected. Kept in memory for the session and not
-   in the hash: it is a filter over data already loaded, so changing it
-   should not push a history entry somebody then has to press back through. */
-let browseFilter = "all";
+/* Which sub-tab is selected, per route that has them. Kept in memory for
+   the session and not in the URL: these are filters over data already
+   loaded, so changing one should not push a history entry somebody then
+   has to press back through.
+
+   Today and browse keep their own, so filtering to hockey in browse does
+   not silently filter today as well. */
+const sportFilter = { today: "all", browse: "all" };
+
+/* Routes that show the sub-tab bar. */
+const FILTER_ROUTES = new Set(["today", "browse"]);
 
 /* ---- detail view ---- */
 
@@ -294,10 +302,10 @@ async function load({ force = false } = {}) {
     return;
   }
 
-  /* The sub-tabs belong to browse alone. Hidden first, so an early return
-     below cannot leave them stranded above another section. */
+  /* The sub-tabs belong to today and browse. Hidden first, so an early
+     return below cannot leave them stranded above another section. */
   const browseTabs = document.getElementById("browseTabs");
-  if (browseTabs) browseTabs.classList.toggle("hidden", route !== "browse");
+  if (browseTabs) browseTabs.classList.toggle("hidden", !FILTER_ROUTES.has(route));
 
   /* Olympics has no free source at all, so it never reaches the network.
      Badminton does now, through SportsAPI Pro. */
@@ -390,11 +398,21 @@ async function paint(route, result, main, freshness, browseTabs) {
       "star"
     );
     hydrateIcons(main);
-  } else if (route === "browse") {
+  } else if (FILTER_ROUTES.has(route)) {
+    /* Browse has a fixed set of sports, so its tabs are the same every
+       day and a zero means "looked for, nothing on". Today aggregates
+       every source, so its tabs come from what actually turned up. */
+    const filters = route === "today" ? sportsPresent(visible) : undefined;
+
+    /* A sport that was selected yesterday may not be on today, which would
+       leave the bar with nothing highlighted and the list empty. Fall back
+       to all rather than showing a filter that no longer exists. */
+    if (filters && !filters.includes(sportFilter[route])) sportFilter[route] = "all";
+
     /* Tabs are drawn from the full set, so every count reflects the day
        and not the current filter. */
-    renderBrowseTabs(browseTabs, visible, browseFilter);
-    renderBrowse(main, visible, favourites, browseFilter);
+    renderBrowseTabs(browseTabs, visible, sportFilter[route], filters);
+    renderBrowse(main, visible, favourites, sportFilter[route]);
   } else {
     renderDashboard(main, visible, favourites);
   }
@@ -500,16 +518,30 @@ function wireNav() {
     const btn = e.target.closest("[data-browse-filter]");
     if (!btn) return;
 
-    const next = btn.dataset.browseFilter;
-    if (!BROWSE_FILTERS.includes(next) || next === browseFilter) return;
-
-    browseFilter = next;
+    const route = currentRoute();
+    if (!FILTER_ROUTES.has(route)) return;
 
     const fixtures = Array.isArray(lastResult?.data?.fixtures) ? lastResult.data.fixtures : [];
+
+    /* Validated against the list this route actually rendered. Today's
+       tabs are derived from the day's fixtures, so checking them against
+       browse's fixed set would reject every one of them. */
+    const filters = route === "today" ? sportsPresent(fixtures) : BROWSE_FILTERS;
+
+    const next = btn.dataset.browseFilter;
+    if (!filters.includes(next) || next === sportFilter[route]) return;
+
+    sportFilter[route] = next;
+
     const favourites = await loadFavourites();
 
-    renderBrowseTabs(document.getElementById("browseTabs"), fixtures, browseFilter);
-    renderBrowse(document.getElementById("view"), fixtures, favourites, browseFilter);
+    renderBrowseTabs(
+      document.getElementById("browseTabs"),
+      fixtures,
+      next,
+      route === "today" ? filters : undefined
+    );
+    renderBrowse(document.getElementById("view"), fixtures, favourites, next);
   });
 
   document.getElementById("view")?.addEventListener("click", (e) => {

@@ -151,7 +151,24 @@ function section(title, iconName, fixtures, favourites) {
    sport. Counts come from the fixtures actually loaded, so a tab reading
    zero is telling the truth about the chosen day and not about coverage. */
 
-export function renderBrowseTabs(container, fixtures, active) {
+/* Today aggregates every source, so which sports turn up changes from one
+   day to the next. Its tabs are derived from the fixtures that actually
+   came back, ordered by how many there are, with "all" pinned first.
+
+   Browse uses a fixed list instead, because its sports are known upfront
+   and a tab reading zero there is still useful: it says the sport was
+   looked for and had nothing on. Deriving Today's the same way would show
+   a permanent column of zeros for sports that are simply out of season. */
+export function sportsPresent(fixtures) {
+  const counts = new Map();
+  for (const fixture of fixtures) {
+    counts.set(fixture.sport, (counts.get(fixture.sport) || 0) + 1);
+  }
+
+  return ["all", ...[...counts.entries()].sort((a, b) => b[1] - a[1]).map(([id]) => id)];
+}
+
+export function renderBrowseTabs(container, fixtures, active, filters = BROWSE_FILTERS) {
   if (!container) return;
 
   const counts = new Map();
@@ -159,7 +176,7 @@ export function renderBrowseTabs(container, fixtures, active) {
     counts.set(fixture.sport, (counts.get(fixture.sport) || 0) + 1);
   }
 
-  container.innerHTML = BROWSE_FILTERS.map((id) => {
+  container.innerHTML = filters.map((id) => {
     const count = id === "all" ? fixtures.length : counts.get(id) || 0;
     const isActive = id === active;
     const label = id === "all" ? "All" : sportLabel(id);
